@@ -6,11 +6,11 @@ class InitialParameters:
         # 冷水机组设定
         self.q = 2814.0  # 单台额定冷水机组额定负荷Qs，KW
         self.n = 3  # 冷水机组台数，台
-        self.efficiency_range = 80.0  # 单台高效率冷负荷范围η，%    excel中值为100？？？
+        self.efficiency_range = 80.0  # 单台高效率冷负荷范围η，%
         self.t3_min = 21.0  # 冷却塔出水（机组允许）最低温度T3
         # 冷冻水泵设定
         self.h = 41.0  # 单台冷冻水泵扬程H，m
-        self.p2 = 90.0  # 单台冷冻水泵功率P2，Kw    excel之中为89.0？？？
+        self.p2 = 90.0  # 单台冷冻水泵功率P2，Kw
         self.p20 = 90.0  # ???
         self.G20 = 533.0  # 单台冷冻水泵的额定流量G，m3/h
         # 冷冻水泵台数，台  3 ？？？
@@ -105,6 +105,7 @@ class P4Fitting:
         self.g = 0.0  # 水流量G（m3/h）
         self.p4 = 0.0  # 功率P4（Kw）
 
+
 # 拟合结果
 class FittingCoefficients:
     def __init__(self):
@@ -120,6 +121,7 @@ class FittingCoefficients:
         self.d_4to3 = []  # 0-2
         self.e = []  # 0-3 # 系数(功率)
 
+
 # 优化计算结果
 class OptimizeResult:
     def __init__(self):
@@ -128,26 +130,27 @@ class OptimizeResult:
         self.day = ""
         self.hour = ""
         self.q = 0.0  # 负荷Q，Kw
-        self.ts = 0.0 # 湿球温度Ts，℃
-        self.load_percentage = None # 负荷百分比
-        self.system_load_percentage = None #
-        self.t1 = None # 冷冻水出水温度，℃
-        self.t2 = None # 冷冻水回水温度，℃
-        self.G2_lendong = None # 冷冻水泵流量，m3/h
-        self.fluency_lendong = None # 冷冻水泵频率，Hz
+        self.ts = 0.0  # 湿球温度Ts，℃
+        self.load_percentage = None  # 负荷百分比
+        self.system_load_percentage = None  #
+        self.t1 = None  # 冷冻水出水温度，℃
+        self.t2 = None  # 冷冻水回水温度，℃
+        self.G2_lendong = None  # 冷冻水泵流量，m3/h
+        self.fluency_lendong = None  # 冷冻水泵频率，Hz
 
-        self.t3 = None # 冷却水出水温度，℃
-        self.t4 = None # 冷却水回水温度，℃
-        self.G3_lenque = None # 冷却水泵流量，m3/h
-        self.fluency_lenque = None # 冷却水泵频率，Hz
-        self.delta_t = None # 冷却塔冷幅
-        self.p1 = None # 主机功率，kw
-        self.p2 = None # 冷冻水泵功率，kw
-        self.p3 = None # 冷却水泵功率，kw
-        self.p4 = None # 冷却塔功率，kw
-        self.p = None # 总功率，kw
-        self.cop = None # 系统COP, kw
-        self.n = 0 # 设备开启台数
+        self.t3 = None  # 冷却水出水温度，℃
+        self.t4 = None  # 冷却水回水温度，℃
+        self.G3_lenque = None  # 冷却水泵流量，m3/h
+        self.fluency_lenque = None  # 冷却水泵频率，Hz
+        self.delta_t = None  # 冷却塔冷幅
+        self.p1 = None  # 主机功率，kw
+        self.p2 = None  # 冷冻水泵功率，kw
+        self.p3 = None  # 冷却水泵功率，kw
+        self.p4 = None  # 冷却塔功率，kw
+        self.p = None  # 总功率，kw
+        self.cop = None  # 系统COP, kw
+        self.n = 0  # 设备开启台数
+
 
 # Q值变化值
 class QDeltaEntry:
@@ -156,6 +159,6 @@ class QDeltaEntry:
         self.mon = "1"
         self.day = "1"
         self.hour = "1"
-        self.Q = "1" # 负荷Q，Kw
-        self.Ts = "1" # 湿球温度Ts，℃
-        self.T = "1" # 干球温度T，℃
+        self.Q = "1"  # 负荷Q，Kw
+        self.Ts = "1"  # 湿球温度Ts，℃
+        self.T = "1"  # 干球温度T，℃
