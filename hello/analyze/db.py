@@ -2,17 +2,20 @@ from analyze.schema import *
 from typing import List
 import openpyxl
 
-init_params = InitialParameters()
-main_fittings: List[MainFitting] = list()
-pump2_fittings: List[Pump2Fitting] = list()
-pump3_fittings: List[Pump3Fitting] = list()
-wet_bulb_fittings_1to1: List[WetBulbFitting_1to1] = list()
-wet_bulb_fittings_2to1: List[WetBulbFitting_2to1] = list()
-wet_bulb_fittings_3to1: List[WetBulbFitting_3to1] = list()
-wet_bulb_fittings_4to1: List[WetBulbFitting_4to1] = list()
-wet_bulb_fittings_3to2: List[WetBulbFitting_3to2] = list()
-wet_bulb_fittings_4to3: List[WetBulbFitting_4to3] = list()
-p4_fittings: List[P4Fitting] = list()
+"""
+定义一些全局变量作为db来存储数据
+"""
+init_params = InitialParameters()  # 初始化参数
+main_fittings: List[MainFitting] = list()  # 主机参数拟合
+pump2_fittings: List[Pump2Fitting] = list()  # 冷冻水泵水泵参数拟合
+pump3_fittings: List[Pump3Fitting] = list()  # 冷却水泵水泵参数拟合
+wet_bulb_fittings_1to1: List[WetBulbFitting_1to1] = list()  # 冷却塔 一对一
+wet_bulb_fittings_2to1: List[WetBulbFitting_2to1] = list()  # 二对一
+wet_bulb_fittings_3to1: List[WetBulbFitting_3to1] = list()  # 三对一
+wet_bulb_fittings_4to1: List[WetBulbFitting_4to1] = list()  # 四对一
+wet_bulb_fittings_3to2: List[WetBulbFitting_3to2] = list()  # 三对二
+wet_bulb_fittings_4to3: List[WetBulbFitting_4to3] = list()  # 四对三
+p4_fittings: List[P4Fitting] = list()  # P4功率与流量的拟合
 
 fitting_coefficients = FittingCoefficients()  # 拟合结果
 optimize_result: List[OptimizeResult] = list()  # 优化结果
@@ -20,6 +23,7 @@ q_delta: List[QDeltaEntry] = list()  # Q值变化
 
 
 def load(path: str):
+    """ 从excel之中加载初始化参数以及各类供拟合系数的数据"""
     global init_params, main_fittings, pump2_fittings, pump3_fittings, wet_bulb_fittings_1to1, wet_bulb_fittings_2to1, wet_bulb_fittings_3to1, wet_bulb_fittings_4to1, wet_bulb_fittings_3to2, wet_bulb_fittings_4to3, p4_fittings, \
         fitting_coefficients, optimize_result, q_delta
     wb = openpyxl.load_workbook(path, read_only=True)

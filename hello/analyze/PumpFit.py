@@ -3,7 +3,6 @@ import numpy as np
 from scipy.optimize import curve_fit
 import math
 
-
 class PumpFitting():
     def __init__(self):
         # 拟合结果
@@ -55,7 +54,7 @@ class PumpFitting():
                      T2 - T1) + B22 * Q * (T4 - T3) + B23 * (T2 - T1) * (T4 - T3)
         return P1
 
-    def fit_P1(self, P1_data):  # 主机系数拟合
+    def fit_P1(self, P1_data):  # 主机系数拟合 P1_data -> db.main_fittings
         temp_T1 = []
         temp_T2 = []
         temp_T3 = []
@@ -101,7 +100,7 @@ class PumpFitting():
         P2 = A0 + A1 * G2 + A2 * G2 * G2
         return P2
 
-    def fit_P2(self, P2_data):  # 冷冻水泵拟合 P2_data -> model.db.pump2_fittings
+    def fit_P2(self, P2_data):  # 冷冻水泵拟合 P2_data -> db.pump2_fittings
         temp_G2 = []
         temp_P2 = []
         for i in P2_data:
@@ -127,7 +126,7 @@ class PumpFitting():
         P3 = C0 + C1 * G3 + C2 * G3 * G3
         return P3
 
-    def fit_P3(self, P3_data):  # 冷却水泵拟合 P3_data -> model.db.pump3_fittings
+    def fit_P3(self, P3_data):  # 冷却水泵拟合 P3_data -> db.pump3_fittings
         temp_P3 = []
         temp_G3 = []
         for i in P3_data:
@@ -205,8 +204,6 @@ class PumpFitting():
         rat = abs(1 - predict_Tdelta / self.Tdelta_2to1)
 
         mse = np.sum((predict_Tdelta - self.Tdelta_2to1) ** 2) / len(self.Tdelta_2to1)
-        # print(mse)
-        # print("===")
 
         rmse = math.sqrt(mse)
 
@@ -234,8 +231,6 @@ class PumpFitting():
         rat = abs(1 - predict_Tdelta / self.Tdelta_3to1)
 
         mse = np.sum((predict_Tdelta - self.Tdelta_3to1) ** 2) / len(self.Tdelta_3to1)
-        # print(mse)
-        # print("===")
 
         rmse = math.sqrt(mse)
 
@@ -269,8 +264,6 @@ class PumpFitting():
         rat = abs(1 - predict_Tdelta / self.Tdelta_4to1)
 
         mse = np.sum((predict_Tdelta - self.Tdelta_4to1) ** 2) / len(self.Tdelta_4to1)
-        # print(mse)
-        # print("===")
 
         rmse = math.sqrt(mse)
 
@@ -325,8 +318,6 @@ class PumpFitting():
         rat = abs(1 - predict_Tdelta / self.Tdelta_4to3)
 
         mse = np.sum((predict_Tdelta - self.Tdelta_4to3) ** 2) / len(self.Tdelta_4to3)
-        # print(mse)
-        # print("===")
 
         rmse = math.sqrt(mse)
 

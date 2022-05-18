@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """main.py"""
 import geatpy as ea # import geatpy
-from analyze.MyPro import MyProblem # 导入自定义问题接口
+from analyze.MyProblem import MyProblem # 导入自定义问题接口
 import numpy as np
 import random as rd
 from model import schema

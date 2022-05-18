@@ -1,6 +1,6 @@
 from analyze.db import *
-from analyze import PumpFit1
-from analyze.Main import *
+from analyze import PumpFit
+from analyze.Evoopt import *
 
 
 def test():
