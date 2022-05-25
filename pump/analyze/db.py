@@ -21,6 +21,8 @@ fitting_coefficients = FittingCoefficients()  # 拟合结果
 optimize_result: List[OptimizeResult] = list()  # 优化结果
 q_delta: List[QDeltaEntry] = list()  # Q值变化
 
+p5_fittings: List[P5Fitting] = list()  # 蒸发冷一体机组系数（制冷工况）
+p6_fittings: List[P6Fitting] = list()  # 风冷热泵机组系数（制热工况）
 
 def load(path: str):
     """ 从excel之中加载初始化参数以及各类供拟合系数的数据"""
@@ -225,5 +227,33 @@ def load(path: str):
                 if sheet.cell(27, 2 + i).value is not None:
                     val = float(sheet.cell(27, 2 + i).value)
                 fitting_coefficients.e.append(val)
+        elif sheet.title == "蒸发冷一体机组系数拟合":
+            main_fittings = list()
+            for rowidx, row in enumerate(sheet.rows):
+                if rowidx <= 1:
+                    continue
+                if row[1].value is None:
+                    break
+                entry = P5Fitting()
+                entry.T2 = float(row[1].value)
+                entry.T1 = float(row[2].value)
+                entry.T0 = float(row[3].value)
+                entry.Q = float(row[4].value)
+                entry.P = float(row[5].value)
+                p5_fittings.append(entry)
+        elif sheet.title == "风冷热泵机组系数拟合":
+            main_fittings = list()
+            for rowidx, row in enumerate(sheet.rows):
+                if rowidx <= 1:
+                    continue
+                if row[1].value is None:
+                    break
+                entry = P6Fitting()
+                entry.T2 = float(row[1].value)
+                entry.T1 = float(row[2].value)
+                entry.T0 = float(row[3].value)
+                entry.Q = float(row[4].value)
+                entry.P = float(row[5].value)
+                p6_fittings.append(entry)
     print("load completed!")
     wb.close()

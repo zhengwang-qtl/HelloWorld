@@ -162,3 +162,20 @@ class QDeltaEntry:
         self.Q = "1"  # 负荷Q，Kw
         self.Ts = "1"  # 湿球温度Ts，℃
         self.T = "1"  # 干球温度T，℃
+
+# 蒸发冷一体机组系数（制冷工况）
+class P5Fitting:
+    def __init__(self):
+        self.T0 = 0.0
+        self.T1 = 0.0
+        self.T2 = 0.0
+        self.Q = 0.0
+        self.P = 0.0
+
+# 风冷热泵机组系数（制热工况）
+class P6Fitting:
+    def __init__(self):
+        self.T0 = 0.0
+        self.T1 = 0.0
+        self.Q = 0.0
+        self.P = 0.0

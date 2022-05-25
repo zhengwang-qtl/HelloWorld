@@ -1,6 +1,6 @@
 import cacluteZJBdata as cZJB
-#import FuncParam as Fun
-import FuncParam_84_213 as Fun
+#import FuncParam as Fun #蒸发冷一体机组系数（制冷工况） K
+import FuncParam_84_213 as Fun #风冷热泵机组系数（制热工况） J
 import time
 filename='./ZJDATA84-213'
 #filename='./ZJDATA2-83'

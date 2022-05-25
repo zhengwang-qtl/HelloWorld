@@ -53,6 +53,16 @@ def testPumpFit():
     print("E: ", E)
     print("mape: ", mape, " rmse: ", rmse)
 
+    K = pf.fit_P5(db.p5_fittings)
+    mape, rmse = pf.calc_pre_p5()
+    print("K: ", K)
+    print("mape: ", mape, " rmse: ", rmse)
+
+    J = pf.fit_P6(db.p6_fittings)
+    mape, rmse = pf.calc_pre_p6()
+    print("J: ", J)
+    print("mape: ", mape, " rmse: ", rmse)
+
     testOptimizeCalculation(pf)
 
 
