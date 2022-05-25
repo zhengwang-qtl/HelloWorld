@@ -1,0 +1,1 @@
+start cmd /k E:\02_тсоН\python-3.9.10\python.exe main.py
