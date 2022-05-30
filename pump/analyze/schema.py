@@ -10,9 +10,10 @@ class InitialParameters:
         self.t3_min = 21.0  # 冷却塔出水（机组允许）最低温度T3
         # 冷冻水泵设定
         self.h = 41.0  # 单台冷冻水泵扬程H，m
-        self.p2 = 90.0  # 单台冷冻水泵功率P2，Kw
-        self.p20 = 90.0  # ???
+        self.p2 = 90.0   # ???
+        self.p20 = 90.0  # 单台冷冻水泵功率P2，Kw
         self.G20 = 533.0  # 单台冷冻水泵的额定流量G，m3/h
+        self.q_min = 422.0  # 单台冷冻水泵最低负荷Qq,Kw
         # 冷冻水泵台数，台  3 ？？？
         # 冷却水泵设定
         self.G30 = 650.0  # 单台冷却水泵的额定流量G，m3/h
@@ -21,7 +22,6 @@ class InitialParameters:
         # 进出口温差设定
         self.delta_t1_range = (4.0, 10.0)  # 冷冻水进出口温差 T2 - T1
         self.delta_t2_range = (4.0, 10.0)  # 冷却水进出口温差 T4 - T3
-        self.q_min = 422.0  # 单台冷水机组最低负荷Qq,Kw
         self.mu = 0.6  # 冷冻水泵变频频率下限值μ
         self.lamb = 0.65  # 冷冻水泵频率下限值λ
         self.yuzhi = 5  # 优化计算设定值%

@@ -2,6 +2,33 @@
 import numpy as np
 import geatpy as ea
 
+"""
+
+    目标：max f = 21.5 + x1 * np.sin(4 * np.pi * x1) + x2 * np.sin(20 * np.pi * x2)
+    约束条件：
+        6<T1<10
+        10<T2<20
+        21<T3<33
+        25<T4<39
+
+            # 4 < T2 - T1 < 10       （4）
+            # 4 < T4 - T3 < 6；    （5）
+
+        P1=B0+B1*T1+B2*T2+B3*Q+B4*Q*Q+B5*T1*T1+B6*T2*T2+B7*Q*T1+B8*Q*T2+B9*T1*T2+B10*T3+B11*T4+B12*T3*T3+B13*T4*T4+B14*Q*T3+B15*Q*T4+B16*T3*T4+B17*(T2-T1)+B18*(T4-T3)+B19*(T2-T1)*(T2-T1)+B20*(T4-T3)*(T4-T3)+B21*Q*(T2-T1)+B22*Q*(T4-T3)+B23*(T2-T1)*(T4-T3)。
+
+        G2=Q/(4.2*(T2-T1)*1000)
+        P2=A0+A1*G2+A2*G2*G2。
+
+        G3=(Q+P1)/(4.2*(T4-T3)*1000)
+        P3=C0+C1*G3+C2*G3*G3
+
+        P4=69.8978*(P1+Q)/(T4-T3)*(P1+Q)/(T4-T3)+83.7279*(P1+Q)/(T4-T3)+0.1554。
+
+        Minf(P)=P1+P2+P3+P4；
+————————————————
+版权声明：本文为CSDN博主「Strong_wind」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/weixin_37790882/article/details/84034956
+"""
 
 class MyProblem(ea.Problem):  # 继承Problem父类
     def __init__(self, Q, TS, superP, fittingP):
@@ -19,6 +46,7 @@ class MyProblem(ea.Problem):  # 继承Problem父类
 
         self.E = fittingP.E
         self.selectType = superP.calcType
+        self.yuzhi = superP.yuzhi
 
         # 参数初始值============================
         self.G20 = float(superP.G20)  # G2额定功率
@@ -149,8 +177,6 @@ class MyProblem(ea.Problem):  # 继承Problem父类
         ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
 
     def aimFunc(self, pop):  # 目标函数
-        Vars = pop.Phen
-
         T2 = pop.Phen[:, [0]]  # 获取表现型矩阵的第一列，得到所有个体的x1的值
         T1 = np.ones(len(T2)) * self.T1
         T1 = T1.reshape((-1, 1))
@@ -158,16 +184,6 @@ class MyProblem(ea.Problem):  # 继承Problem父类
         T3 = np.ones(len(T2)) * self.T3
         T3 = T3.reshape((-1, 1))
 
-        exIdx1 = np.where(T2 - T1 > 10)[
-            0]  # 找到违反约束条件1的个体索引exIdx2 = np.where(x1+2*x3>2)[0]#找到违反约束条件2的个体索引exIdx3 = np.where(x1+x2+x3!=1)
-        exIdx2 = np.where(T2 - T1 < 4)[
-            0]  # 找到违反约束条件1的个体索引exIdx2 = np.where(x1+2*x3>2)[0]#找到违反约束条件2的个体索引exIdx3 = np.where(x1+x2+x3!=1)
-        exIdx3 = np.where(T4 - T3 < 4)[
-            0]  # 找到违反约束条件1的个体索引exIdx2 = np.where(x1+2*x3>2)[0]#找到违反约束条件2的个体索引exIdx3 = np.where(x1+x2+x3!=1)
-        exIdx4 = np.where(T4 - T3 > 6)[
-            0]  # 找到违反约束条件1的个体索引exIdx2 = np.where(x1+2*x3>2)[0]#找到违反约束条件2的个体索引exIdx3 = np.where(x1+x2+x3!=1)
-
-        # =================================================
         Q = self.Q
         B = self.B
         P1 = B[0] + B[1] * T1 + B[2] * T2 + B[3] * Q + B[4] * Q * Q + B[5] * T1 * T1 + B[6] * T2 * T2 + B[7] * Q * T1 + \
@@ -185,7 +201,6 @@ class MyProblem(ea.Problem):  # 继承Problem父类
             G2[index][0] = min(G2[index][0], self.G20)
 
         P2 = A[0] + A[1] * G2 + A[2] * G2 * G2
-        edIdx_P2 = np.where(P2 < 0)[0]
 
         G3 = 6 * (Q + P1) / (7 * (T4 - T3))
         for index in range(len(G3)):
@@ -195,7 +210,6 @@ class MyProblem(ea.Problem):  # 继承Problem父类
         C = self.C
         P3 = C[0] + C[1] * G3 + C[2] * G3 * G3
 
-        edIdx_P3 = np.where(P3 < 0)[0]
 
         if self.T3 > self.t3_min:
             P4 = np.ones(len(T4)) * self.P0
@@ -204,8 +218,6 @@ class MyProblem(ea.Problem):  # 继承Problem父类
             E = self.E
             P4 = E[0] + E[1] * G3 + E[2] * G3 * G3 + E[3] * G3 * G3 * G3
 
-        edIdx_P4 = np.where(P4 < 0)[0]
-        exIdx = np.unique(np.hstack([edIdx_P1, edIdx_P2, edIdx_P3, edIdx_P4]))
         P = self.n * (P1 + P2 + P3) + self.z * P4
 
         alpha = 10000  # 惩罚缩放因子

@@ -27,7 +27,7 @@ p6_fittings: List[P6Fitting] = list()  # 风冷热泵机组系数（制热工况
 def load(path: str):
     """ 从excel之中加载初始化参数以及各类供拟合系数的数据"""
     global init_params, main_fittings, pump2_fittings, pump3_fittings, wet_bulb_fittings_1to1, wet_bulb_fittings_2to1, wet_bulb_fittings_3to1, wet_bulb_fittings_4to1, wet_bulb_fittings_3to2, wet_bulb_fittings_4to3, p4_fittings, \
-        fitting_coefficients, optimize_result, q_delta
+        fitting_coefficients, optimize_result, q_delta, p5_fittings, p6_fittings
     wb = openpyxl.load_workbook(path, read_only=True)
     for sheet in wb:
         if sheet.title == "q值变化值":
@@ -228,32 +228,32 @@ def load(path: str):
                     val = float(sheet.cell(27, 2 + i).value)
                 fitting_coefficients.e.append(val)
         elif sheet.title == "蒸发冷一体机组系数拟合":
-            main_fittings = list()
+            p5_fittings = list()
             for rowidx, row in enumerate(sheet.rows):
-                if rowidx <= 1:
+                if rowidx <= 0:
                     continue
-                if row[1].value is None:
+                if row[0].value is None:
                     break
                 entry = P5Fitting()
-                entry.T2 = float(row[1].value)
-                entry.T1 = float(row[2].value)
-                entry.T0 = float(row[3].value)
-                entry.Q = float(row[4].value)
-                entry.P = float(row[5].value)
+                entry.T2 = float(row[0].value)
+                entry.T1 = float(row[1].value)
+                entry.T0 = float(row[2].value)
+                entry.Q = float(row[3].value)
+                entry.P = float(row[4].value)
                 p5_fittings.append(entry)
         elif sheet.title == "风冷热泵机组系数拟合":
-            main_fittings = list()
+            p6_fittings = list()
             for rowidx, row in enumerate(sheet.rows):
-                if rowidx <= 1:
+                if rowidx <= 0:
                     continue
-                if row[1].value is None:
+                if row[0].value is None:
                     break
                 entry = P6Fitting()
-                entry.T2 = float(row[1].value)
-                entry.T1 = float(row[2].value)
-                entry.T0 = float(row[3].value)
-                entry.Q = float(row[4].value)
-                entry.P = float(row[5].value)
+                entry.T2 = float(row[0].value)
+                entry.T1 = float(row[1].value)
+                entry.T0 = float(row[2].value)
+                entry.Q = float(row[3].value)
+                entry.P = float(row[4].value)
                 p6_fittings.append(entry)
     print("load completed!")
     wb.close()

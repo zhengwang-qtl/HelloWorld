@@ -53,6 +53,8 @@ def testPumpFit():
     print("E: ", E)
     print("mape: ", mape, " rmse: ", rmse)
 
+    testOptimizeCalculation(pf)
+
     K = pf.fit_P5(db.p5_fittings)
     mape, rmse = pf.calc_pre_p5()
     print("K: ", K)
@@ -63,7 +65,8 @@ def testPumpFit():
     print("J: ", J)
     print("mape: ", mape, " rmse: ", rmse)
 
-    testOptimizeCalculation(pf)
+
+
 
 
 def testOptimizeCalculation(fitResult):
@@ -72,23 +75,20 @@ def testOptimizeCalculation(fitResult):
     tempQ = db.optimize_result[0].q * 2
     tempG2 = None
     tempG3 = None
+    tempP1 = None
 
     for index, i in enumerate(db.optimize_result):
         Q = i.q
         TS = i.ts
         if i.q == 0:
             break
-        opt = Evoopt(Q, TS, superP, fitResult)
-        res = None
-        if abs(Q - tempQ) * 100 / tempQ < float(db.init_params.yuzhi):
-
-            res = opt.run(tempG2, tempG3)
-            pass
-        else:
-            res = opt.run()
-            tempQ = Q
-            tempG2 = opt.G2
-            tempG3 = opt.G3
+        problem = MyProblem(Q, TS, superP, fitResult) #设置一些可以预先设置的值 & 目标函数 Solution case
+        opt = Evoopt(problem) #  GeatpyRunner
+        res = opt.run(tempQ,tempG2, tempG3,tempP1)
+        tempQ = Q
+        tempG2 = opt.G2
+        tempG3 = opt.G3
+        tempP1 = res[11]
 
         db.optimize_result[index].load_percentage = res[0]
         db.optimize_result[index].system_load_percentage = res[1]

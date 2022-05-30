@@ -3,6 +3,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 import math
 
+
 class PumpFitting():
     def __init__(self):
         # 拟合结果
@@ -18,7 +19,6 @@ class PumpFitting():
         self.E = [1] * 4
         self.J = [1] * 10
         self.K = [1] * 18
-
 
         self.P1_x_data = None
         self.P1 = None
@@ -366,7 +366,9 @@ class PumpFitting():
 
     def func_P5(self, T, K0, K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11, K12, K13, K14, K15, K16, K17):
         T0, T1, T2, Q = T
-        P5 =K0 + K1 * T1 + K2 * T2 + K3 * Q + K4 * Q * Q + K5 * T1 * T1 + K6 * T2 * T2 + K7 * Q * T1 + K8 * Q * T2 + K9 * T1 * T2 + K10 * (T2 - T1) + K11 * T0  + K12 * (T2 - T1) * (T2 - T1) + K13 * T0 * T0 + K14 * Q * (T2 - T1) + K15 * Q * T0 + K16 * (T2 - T1) * T0 + K17 * (T0 - T1)
+        P5 = K0 + K1 * T1 + K2 * T2 + K3 * Q + K4 * Q * Q + K5 * T1 * T1 + K6 * T2 * T2 + K7 * Q * T1 + K8 * Q * T2 + K9 * T1 * T2 + K10 * (
+                    T2 - T1) + K11 * T0 + K12 * (T2 - T1) * (T2 - T1) + K13 * T0 * T0 + K14 * Q * (
+                         T2 - T1) + K15 * Q * T0 + K16 * (T2 - T1) * T0 + K17 * (T0 - T1)
         return P5
 
     def fit_P5(self, P5_data):  # 蒸发冷一体机组系数（制冷工况） P5_data -> db.main_fittings
@@ -392,7 +394,7 @@ class PumpFitting():
         self.K = list(a)
         return a
 
-    def calc_pre_P5(self):  # 计算MAPE RMSE
+    def calc_pre_p5(self):  # 计算MAPE RMSE
 
         K0, K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11, K12, K13, K14, K15, K16, K17 = self.K
 
@@ -407,10 +409,10 @@ class PumpFitting():
 
         return (sum(rat) / len(rat)), rmse
 
-
     def func_P6(self, T, J0, J1, J2, J3, J4, J5, J6, J7, J8, J9):
         T0, T1, Q = T
-        P6 = J0+J1 * T1 +J2 * Q+J3 * Q * Q+J4 * T1 * T1+J5 * Q * T1+J6 * T0 +J7 * T0 * T0+J8 * Q * T0+J9 * (T1 -T0)
+        P6 = J0 + J1 * T1 + J2 * Q + J3 * Q * Q + J4 * T1 * T1 + J5 * Q * T1 + J6 * T0 + J7 * T0 * T0 + J8 * Q * T0 + J9 * (
+                    T1 - T0)
         return P6
 
     def fit_P6(self, P6_data):  # 风冷热泵机组系数（制热工况） P6_data -> db.main_fittings
@@ -421,8 +423,8 @@ class PumpFitting():
         for i in P6_data:
             temp_T0.append(i.T0)
             temp_T1.append(i.T1)
-            temp_Q.append(i.q)
-            temp_P.append(i.P6)
+            temp_Q.append(i.Q)
+            temp_P.append(i.P)
         T0 = np.array(temp_T0)
         T1 = np.array(temp_T1)
         Q = np.array(temp_Q)
@@ -430,10 +432,10 @@ class PumpFitting():
         self.P6_x_data = (T0, T1, Q)
         self.P6 = P6
         a, b = curve_fit(self.func_P6, self.P6_x_data, self.P6)
-        self.B = list(a)
+        self.J = list(a)
         return a
 
-    def calc_pre_P6(self):  # 计算MAPE RMSE
+    def calc_pre_p6(self):  # 计算MAPE RMSE
 
         J0, J1, J2, J3, J4, J5, J6, J7, J8, J9 = self.J
 

@@ -4,8 +4,8 @@ from analyze.MyProblem import MyProblem  # 导入自定义问题接口
 
 
 class Evoopt():
-    def __init__(self, Q, TS, superP, fittingP):
-        self.problem = MyProblem(Q, TS, superP, fittingP)
+    def __init__(self, problem):
+        self.problem = problem
         """==================================种群设置=================================="""
         self.Encoding = 'RI'  # 编码方式
         self.NIND = 100  # 种群规模
@@ -24,50 +24,59 @@ class Evoopt():
         self.G2 = None
         self.G3 = None
 
-    def run(self, tempG2=-1, tempG3=-1):
+    def run(self, tempQ=-1,tempG2=-1,tempG3=-1,tempP1=-1):
         if self.problem.ifopt is False:
             loading_ration = self.problem.Q / self.problem.QS * 100
-            return (round(loading_ration, 2), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, self.problem.P20, 0, 0)
+            """
+            水泵流量G2=单台水泵额定流量（界面初始化输入值）*冷冻水泵最低允许频率值μ，
+            冷冻水泵功率P2=A0+A1*G2+A2*G2*G2。Minf(P)=P2，系统COP=Q/Minf(P)。
+            """
+            G2 = self.problem.P20 * self.problem.u1
+            P2 = self.A[0]+ self.A[1] * G2 + self.A[2] * G2 * G2
+            P = P2
+            COP = self.problem.Q/P
+            return (round(loading_ration, 2), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, round(P2,3), 0, 0, round(P,3), round(COP,3), 0)
+            #其它的一些值的补全？
         else:
-            [BestIndi, population] = self.myAlgorithm.run()  # 执行算法模板，得到最优个体以及最后一代种群
-
-            T1 = self.problem.T1
-            T2 = BestIndi.Phen[0, 0]
-            T3 = self.problem.T3
-            T4 = BestIndi.Phen[0, 1]
             Q = self.problem.Q
+            T1 = self.problem.T1
+            T3 = self.problem.T3
 
-            P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
-            A0, A1, A2 = self.problem.A
+            #区分 根据
+            if abs(self.problem.Q - tempQ) * 100 / tempQ < float(self.problem.yuzhi):
+                G2 = tempG2
+                G3 = tempG3
+                T2=T1+6*Q/(G2*7)
+                T4 = T3 + 6 * (Q + tempP1) / (G3 * 7)
+            else:
+                [BestIndi, population] = self.myAlgorithm.run()  # 执行算法模板，得到最优个体以及最后一代种群
+                T2 = BestIndi.Phen[0, 0]
+                T4 = BestIndi.Phen[0, 1]
 
-            flag_g2 = 0
-            flag_g3 = 0
-
-            G2 = 6 * Q / (7 * (T2 - T1))
+                P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B) #关于P1我有不满的地方？
+                G2 = 6 * Q / (7 * (T2 - T1))
+                G3 = 6 * (Q + P1) / (7 * (T4 - T3))
+                #一般的跑法
             G20 = self.problem.G20
             u1 = self.problem.u1
-
             if G2 <= G20 * u1 or G2 >= G20:
-                flag_g2 = 1
+                T2 = T1 + 6 * Q / (7 * G20 * u1)
 
-            G3 = 6 * (Q + P1) / (7 * (T4 - T3))
             G30 = self.problem.G30
             u2 = self.problem.u2
             if G3 <= G30 * u2 or G3 >= G30:
-                flag_g3 = 1
-
-            if flag_g2 == 1:
-                T2 = T1 + 6 * Q / (7 * G20 * u1)
-                if T2 - T1 < self.problem.t2_tuple[0]:
-                    T2 = T1 + self.problem.t2_tuple[0]
-                if T2 - T1 > self.problem.t2_tuple[1]:
-                    T2 = T1 + self.problem.t2_tuple[1]
-            if flag_g3 == 1:
+                P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
                 T4 = T3 + 6 * (Q + P1) / (7 * G30 * u2)
-                if T4 - T3 < self.problem.t4_tuple[0]:
-                    T4 = T3 + self.problem.t4_tuple[0]
-                if T4 - T3 > self.problem.t4_tuple[1]:
-                    T4 = T3 + self.problem.t4_tuple[0]
+
+            if T2 - T1 < self.problem.t2_tuple[0]:
+                T2 = T1 + self.problem.t2_tuple[0]
+            if T2 - T1 > self.problem.t2_tuple[1]:
+                T2 = T1 + self.problem.t2_tuple[1]
+
+            if T4 - T3 < self.problem.t4_tuple[0]:
+                T4 = T3 + self.problem.t4_tuple[0]
+            if T4 - T3 > self.problem.t4_tuple[1]:
+                T4 = T3 + self.problem.t4_tuple[0]
             P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
             A0, A1, A2 = self.problem.A
 
@@ -76,8 +85,6 @@ class Evoopt():
             u1 = self.problem.u1
             G2 = max(G2, G20 * u1)
             G2 = min(G2, G20)
-            if tempG2 != -1:
-                G2 = tempG2
             self.G2 = G2
             P2 = A0 + A1 * G2 + A2 * G2 * G2
 
@@ -87,8 +94,6 @@ class Evoopt():
             u2 = self.problem.u2
             G3 = max(G3, G30 * u2)
             G3 = min(G3, G30)
-            if tempG3 != -1:
-                G3 = tempG3
             self.G3 = G3
             P3 = C0 + C1 * G3 + C2 * G3 * G3
 
