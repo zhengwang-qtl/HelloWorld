@@ -1,8 +1,8 @@
 # 初始化参数
 class InitialParameters:
     def __init__(self):
-        self.calcType = 0  # 计算类型 单冷型 冷暖型
-        self.lengque_maxn = 4  # 冷却水泵最大台数
+        self.calcType = 0  # 冷却塔计算类型
+        self.lengque_maxn = 4  # 冷水机组最大台数
         # 冷水机组设定
         self.q = 2814.0  # 单台额定冷水机组额定负荷Qs，KW
         self.n = 3  # 冷水机组台数，台
@@ -10,7 +10,6 @@ class InitialParameters:
         self.t3_min = 21.0  # 冷却塔出水（机组允许）最低温度T3
         # 冷冻水泵设定
         self.h = 41.0  # 单台冷冻水泵扬程H，m
-        self.p2 = 90.0   # ???
         self.p20 = 90.0  # 单台冷冻水泵功率P2，Kw
         self.G20 = 533.0  # 单台冷冻水泵的额定流量G，m3/h
         self.q_min = 422.0  # 单台冷冻水泵最低负荷Qq,Kw

@@ -3,84 +3,60 @@ import numpy as np
 import geatpy as ea
 
 """
-
-    目标：max f = 21.5 + x1 * np.sin(4 * np.pi * x1) + x2 * np.sin(20 * np.pi * x2)
-    约束条件：
-        6<T1<10
-        10<T2<20
-        21<T3<33
-        25<T4<39
-
-            # 4 < T2 - T1 < 10       （4）
-            # 4 < T4 - T3 < 6；    （5）
-
-        P1=B0+B1*T1+B2*T2+B3*Q+B4*Q*Q+B5*T1*T1+B6*T2*T2+B7*Q*T1+B8*Q*T2+B9*T1*T2+B10*T3+B11*T4+B12*T3*T3+B13*T4*T4+B14*Q*T3+B15*Q*T4+B16*T3*T4+B17*(T2-T1)+B18*(T4-T3)+B19*(T2-T1)*(T2-T1)+B20*(T4-T3)*(T4-T3)+B21*Q*(T2-T1)+B22*Q*(T4-T3)+B23*(T2-T1)*(T4-T3)。
-
-        G2=Q/(4.2*(T2-T1)*1000)
-        P2=A0+A1*G2+A2*G2*G2。
-
-        G3=(Q+P1)/(4.2*(T4-T3)*1000)
-        P3=C0+C1*G3+C2*G3*G3
-
-        P4=69.8978*(P1+Q)/(T4-T3)*(P1+Q)/(T4-T3)+83.7279*(P1+Q)/(T4-T3)+0.1554。
-
-        Minf(P)=P1+P2+P3+P4；
-————————————————
-版权声明：本文为CSDN博主「Strong_wind」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
-原文链接：https://blog.csdn.net/weixin_37790882/article/details/84034956
+    
 """
 
-class CCTcase(ea.Problem):  # 继承Problem父类
-    def __init__(self, Q, TS, superP, fittingP):
-        self.B = fittingP.B
-        self.A = fittingP.A
-        self.C = fittingP.C
-        self.D_1to1 = fittingP.D_1to1
-        self.D_2to1 = fittingP.D_2to1
-        self.D_3to1 = fittingP.D_3to1
-        self.D_4to1 = fittingP.D_4to1
-        self.D_3to2 = fittingP.D_3to2
-        self.D_4to3 = fittingP.D_4to3
 
+class CCTcase(ea.Problem):
+    def __init__(self, Q, TS, initParams, fitting):
+        self.A = fitting.A
+        self.B = fitting.B
+        self.C = fitting.C
+
+        self.D_1to1 = fitting.D_1to1
+        self.D_2to1 = fitting.D_2to1
+        self.D_3to1 = fitting.D_3to1
+        self.D_4to1 = fitting.D_4to1
+        self.D_3to2 = fitting.D_3to2
+        self.D_4to3 = fitting.D_4to3
         self.typeToD = {1: self.D_1to1, 2: self.D_2to1, 3: self.D_3to1, 4: self.D_4to1, 5: self.D_3to2, 6: self.D_4to3}
 
-        self.E = fittingP.E
-        self.selectType = superP.calcType
-        self.yuzhi = superP.yuzhi
+        self.E = fitting.E
 
-        # 参数初始值============================
-        self.G20 = float(superP.G20)  # G2额定功率
-        self.u1 = float(superP.mu)  # G2限定值
-
-        self.G30 = float(superP.G30)  # G3额定功率
-        self.u2 = float(superP.lamb)  # G3限定值
-        self.t3_min = float(superP.t3_min)
-        self.t2_tuple = (float(superP.delta_t1_range[0]), float(superP.delta_t1_range[1]))  # t2 与 t1 的范围
-
-        self.t4_tuple = (float(superP.delta_t2_range[0]), float(superP.delta_t2_range[1]))  # t4 与 t3 的范围
-        self.P0 = float(superP.P0)  # 一定条件下P4=P0
+        self.selectType = initParams.calcType
+        self.yuzhi = initParams.yuzhi
+        self.G20 = float(initParams.G20)  # G2额定功率
+        self.u1 = float(initParams.mu)  # G2限定值
+        self.P20 = float(initParams.p20)
+        self.G30 = float(initParams.G30)  # G3额定功率
+        self.u2 = float(initParams.lamb)  # G3限定值
+        self.t3_min = float(initParams.t3_min)
+        self.t2_tuple = (float(initParams.delta_t1_range[0]), float(initParams.delta_t1_range[1]))  # t2与t1差值的范围
+        self.t4_tuple = (float(initParams.delta_t2_range[0]), float(initParams.delta_t2_range[1]))  # t4与t3差值的范围
+        self.P0 = float(initParams.P0)  # 一定条件下P4=P0
         self.Q = float(Q)  # 负荷Q
         self.TS = float(TS)  # 湿球温度
-        self.QS = float(superP.q)  # 单台额定冷水机组负荷QS
-        self.nita = float(superP.efficiency_range)  # η
-        self.max_n = float(superP.n)  # 最大台数
-        self.lengque_maxn = superP.lengque_maxn
+        self.QS = float(initParams.q)  # 单台额定冷水机组负荷QS
+        self.nita = float(initParams.efficiency_range)  # 单台高效率冷负荷范围η
+        self.max_n = float(initParams.n)  # 最大台数
+        self.lengque_maxn = initParams.lengque_maxn  # 冷水机组最大台数
+        self.T1_range = initParams.t1_range
+        self.load_rat = initParams.load_rat
+
         self.n = None  # 台数
-        self.T1_range = superP.t1_range
-        self.load_rat = superP.load_rat
 
         self.T1 = None  # 根据计算选取固定T1，之后的进化T2都是在此基础浮动
 
-        self.q_min = float(superP.q_min)
+        #  判断是否需要优化计算
+        self.q_min = float(initParams.q_min)  # 单台冷冻水泵最低负荷Qq,Kw
         self.ifopt = True
 
         if self.q_min > Q:
             self.ifopt = False
         else:
             self.ifopt = True
-        self.P20 = float(superP.p2)
 
-        # 除了计算T1温度时按照原本Q，其他都要Q/n
+        #  计算T1
         temp = ((self.Q) * 100) / (self.QS * self.max_n)
         for index in range(len(self.load_rat)):
             if index == len(self.load_rat) - 1:
@@ -95,7 +71,7 @@ class CCTcase(ea.Problem):  # 继承Problem父类
                 break
 
         for i in range(int(self.max_n)):
-            if Q * 100 / self.QS > i * float(self.nita) and Q * 100 / self.QS <= (i + 1) * float(self.nita):
+            if i * float(self.nita) < Q * 100 / self.QS <= (i + 1) * float(self.nita):
                 self.n = i + 1
                 break
         if self.n is None:
@@ -105,6 +81,7 @@ class CCTcase(ea.Problem):  # 继承Problem父类
 
         self.Q = self.Q / self.n
 
+        # 计算T3
         if self.selectType == 0:
             temp = self.lengque_maxn / self.n
             if temp == 1:
@@ -138,9 +115,10 @@ class CCTcase(ea.Problem):  # 继承Problem父类
                 D0, D1, D2 = self.typeToD[self.selectType]
                 self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS
 
+        # 计算z
         self.z = None
         for i in range(int(self.max_n)):
-            if Q / self.QS > i and Q / self.QS <= (i + 1):
+            if i < Q / self.QS <= (i + 1):
                 self.z = i + 1
                 break
         if self.z is None:
@@ -156,9 +134,6 @@ class CCTcase(ea.Problem):  # 继承Problem父类
         name = 'MyProblem'  # 初始化name（函数名称，可以随意设置）
         M = 1  # 初始化M（目标维数）
         maxormins = [1]  # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标）
-        # 4 < T2 - T1 < 10     4+T1<T2<10+T1
-        # 4 < T4 - T3 < 6      4+T3<T4<6+T3
-        # 如果T3≧18（读入数据）度，P4=P0（22k），否则T3=18，P4==E0+E1*G3+E2*G3*G3+E3*G3*G3*G3
 
         T2_MIN = self.t2_tuple[0] + self.T1
         T2_MAX = self.t2_tuple[1] + self.T1
@@ -173,7 +148,6 @@ class CCTcase(ea.Problem):  # 继承Problem父类
         lbin = [1, 1]  # 决策变量下边界
         ubin = [1, 1]  # 决策变量上边界
         # 调用父类构造方法完成实例化
-
         ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
 
     def aimFunc(self, pop):  # 目标函数
@@ -189,8 +163,8 @@ class CCTcase(ea.Problem):  # 继承Problem父类
         P1 = B[0] + B[1] * T1 + B[2] * T2 + B[3] * Q + B[4] * Q * Q + B[5] * T1 * T1 + B[6] * T2 * T2 + B[7] * Q * T1 + \
              B[8] * Q * T2 + B[9] * T1 * T2 + B[10] * T3 + B[11] * T4 + B[12] * T3 * T3 + B[13] * T4 * T4 + B[
                  14] * Q * T3 + B[15] * Q * T4 + B[16] * T3 * T4 + B[17] * (T2 - T1) + B[18] * (T4 - T3) + B[19] * (
-                         T2 - T1) * (T2 - T1) + B[20] * (T4 - T3) * (T4 - T3) + B[21] * Q * (T2 - T1) + B[22] * Q * (
-                         T4 - T3) + B[23] * (T2 - T1) * (T4 - T3)
+                     T2 - T1) * (T2 - T1) + B[20] * (T4 - T3) * (T4 - T3) + B[21] * Q * (T2 - T1) + B[22] * Q * (
+                     T4 - T3) + B[23] * (T2 - T1) * (T4 - T3)
         edIdx_P1 = np.where(P1 < 0)[0]
 
         A = self.A
@@ -209,7 +183,6 @@ class CCTcase(ea.Problem):  # 继承Problem父类
 
         C = self.C
         P3 = C[0] + C[1] * G3 + C[2] * G3 * G3
-
 
         if self.T3 > self.t3_min:
             P4 = np.ones(len(T4)) * self.P0

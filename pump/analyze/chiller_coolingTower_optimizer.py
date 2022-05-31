@@ -19,24 +19,26 @@ class CCToptimizer():
         self.myAlgorithm.recOper.XOVR = 0.7  # 设置交叉概率
         self.myAlgorithm.MAXGEN = 25  # 最大进化代数
         self.myAlgorithm.logTras = 0  # 设置每隔多少代记录日志，若设置成0则表示不记录日志
-        # self.myAlgorithm.verbose = True  # 设置是否打印输出日志信息
         self.myAlgorithm.drawing = 0  # 设置绘图方式（0：不绘图；1：绘制结果图；2：绘制目标空间过程动画；3：绘制决策空间过程动画）
-        self.G2 = None
-        self.G3 = None
 
+    """
+    返回结果
+    loading_ration（单机负荷百分比）, system_loading_ration（系统负荷百分比）, 
+    T1（冷冻水出水温度）, T2（冷冻水回水温度）, G2（冷冻水泵流量）, 50 * G2 / G20（冷冻水泵频率） , 
+    T3（冷冻水出水温度）, T4（冷冻水回水温度）, G3（冷冻水泵流量）, 50 * G3 / G30（冷冻水泵频率）,
+    cold_flu（冷却塔冷幅）, 
+    P1（主机功率）, P2（冷冻水泵功率）, P3（冷却水泵功率）, P4（冷却塔功率）, total_P（总功率）,total_cop（系统COP）, 
+    open_num（设备开启台数）
+    """
     def run(self, tempQ=-1,tempG2=-1,tempG3=-1,tempP1=-1):
         if self.problem.ifopt is False:
             loading_ration = self.problem.Q / self.problem.QS * 100
-            """
-            水泵流量G2=单台水泵额定流量（界面初始化输入值）*冷冻水泵最低允许频率值μ，
-            冷冻水泵功率P2=A0+A1*G2+A2*G2*G2。Minf(P)=P2，系统COP=Q/Minf(P)。
-            """
             G2 = self.problem.P20 * self.problem.u1
             P2 = self.A[0]+ self.A[1] * G2 + self.A[2] * G2 * G2
             P = P2
             COP = self.problem.Q/P
-            return (round(loading_ration, 2), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, round(P2,3), 0, 0, round(P,3), round(COP,3), 0)
-            #其它的一些值的补全？
+            # T2 是否需要计算呢？
+            return (round(loading_ration, 2), 0, round(self.problem.T1, 3), round(T2, 3), round(G2, 3),round(50 * G2 / self.problem.G20, 3), 0, 0, 0, 0, 0, round(P2,3), 0, 0, round(P,3), round(COP,3), 0)
         else:
             Q = self.problem.Q
             T1 = self.problem.T1
@@ -85,7 +87,6 @@ class CCToptimizer():
             u1 = self.problem.u1
             G2 = max(G2, G20 * u1)
             G2 = min(G2, G20)
-            self.G2 = G2
             P2 = A0 + A1 * G2 + A2 * G2 * G2
 
             C0, C1, C2 = self.problem.C
@@ -94,7 +95,6 @@ class CCToptimizer():
             u2 = self.problem.u2
             G3 = max(G3, G30 * u2)
             G3 = min(G3, G30)
-            self.G3 = G3
             P3 = C0 + C1 * G3 + C2 * G3 * G3
 
             E0, E1, E2, E3 = self.problem.E
