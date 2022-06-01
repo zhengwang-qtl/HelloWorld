@@ -28,6 +28,13 @@ class InitialParameters:
         self.load_rat = [100, 95, 90, 85, 80, 75, 70, 65, 60]  # 负荷率
         self.t1_range = []  # 冷冻水出水温度T1
 
+        self.f_ts = 20.0  # 室外湿球温度
+        self.f_bh_td = 10.0  # 板换温差
+        self.f_bh_efficiency = 30.0  # 板换效率
+        self.f_min_load = 200  # 最低负荷
+        self.f_ct_td = 10.0  # 冷却塔温差
+        self.f_w_td = 6.0  # 供回水温差
+
 
 # 主机参数拟合
 class MainFitting:
@@ -131,7 +138,7 @@ class OptimizeResult:
         self.q = 0.0  # 负荷Q，Kw
         self.ts = 0.0  # 湿球温度Ts，℃
         self.load_percentage = None  # 负荷百分比
-        self.system_load_percentage = None  #
+        self.system_load_percentage = None  # 系统负荷百分比
         self.t1 = None  # 冷冻水出水温度，℃
         self.t2 = None  # 冷冻水回水温度，℃
         self.G2_lendong = None  # 冷冻水泵流量，m3/h
@@ -162,6 +169,7 @@ class QDeltaEntry:
         self.Ts = "1"  # 湿球温度Ts，℃
         self.T = "1"  # 干球温度T，℃
 
+
 # 蒸发冷一体机组系数（制冷工况）
 class P5Fitting:
     def __init__(self):
@@ -170,6 +178,7 @@ class P5Fitting:
         self.T2 = 0.0
         self.Q = 0.0
         self.P = 0.0
+
 
 # 风冷热泵机组系数（制热工况）
 class P6Fitting:

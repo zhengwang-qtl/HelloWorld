@@ -3,7 +3,7 @@ import geatpy as ea
 from analyze.MyProblem import MyProblem  # 导入自定义问题接口
 
 
-class CCToptimizer():
+class CCTFoptimizer():
     def __init__(self, problem):
         self.problem = problem
         """==================================种群设置=================================="""
