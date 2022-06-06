@@ -7,10 +7,10 @@ import geatpy as ea
 """
 
 
-class ACHPHcase(ea.Problem):
+class IECRcase(ea.Problem):
     def __init__(self, Q, TS, initParams, fitting):
         self.A = fitting.A
-        self.J = fitting.J
+        self.K = fitting.K
 
         self.yuzhi = initParams.yuzhi
         self.G20 = float(initParams.G20)  # G2额定功率
@@ -18,19 +18,19 @@ class ACHPHcase(ea.Problem):
         self.P20 = float(initParams.p20)
         self.t2_tuple = (float(initParams.delta_t1_range[0]), float(initParams.delta_t1_range[1]))  # t2与t1差值的范围
         self.Q = float(Q)  # 负荷Q
-        self.TS = float(TS)  # 室外干球温度
+        self.TS = float(TS)  # 湿球温度
         self.QS = float(initParams.q)  # 单台额定冷水机组负荷QS
         self.nita = float(initParams.efficiency_range)  # 单台高效率冷负荷范围η
         self.max_n = float(initParams.n)  # 最大台数
-        self.T1_range = initParams.ACHP_h_t1_range
-        self.load_rat = initParams.ACHP_h_load_rate
+        self.T1_range = initParams.IEC_r_t1_range
+        self.load_rat = initParams.IEC_r_load_rate
 
         self.n = None  # 台数
 
         self.T1 = None  # 根据计算选取固定T1，之后的进化T2都是在此基础浮动
 
         #  判断是否需要优化计算
-        self.q_min = float(initParams.heating_q_min)  # 制热最低负荷Qq,Kw
+        self.q_min = float(initParams.refrigeration_q_min)  # 制热最低负荷Qq,Kw
         self.ifopt = True
 
         if self.q_min > Q:
@@ -85,10 +85,11 @@ class ACHPHcase(ea.Problem):
         T1 = T1.reshape((-1, 1))
 
         Q = self.Q
-        J = self.J
+        K = self.K
         T0 = self.TS
-        P1 = J[0] + J[1] * T1 + J[2] * Q + J[3] * Q * Q + J[4] * T1 * T1 + J[5] * Q * T1 + J[6] * T0 + J[7] * T0 * T0 + J[8] * Q * T0 + J[9] * (
-                T1 - T0)
+        P1 = K[0] + K[1] * T1 + K[2] * T2 + K[3] * Q + K[4] * Q * Q + K[5] * T1 * T1 + K[6] * T2 * T2 + K[7] * Q * T1 + \
+             K[8] * Q * T2 + K[9] * T1 * T2 + K[10] * (T2 - T1) + K[11] * T0 + K[12] * (T2 - T1) * (T2 - T1) + K[
+                 13] * T0 * T0 + K[14] * Q * (T2 - T1) + K[15] * Q * T0 + K[16] * (T2 - T1) * T0 + K[17] * (T0 - T1)
 
         edIdx_P1 = np.where(P1 < 0)[0]
 

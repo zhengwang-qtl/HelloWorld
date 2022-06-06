@@ -25,7 +25,7 @@ class CCToptimizer():
     返回结果
     loading_ration（单机负荷百分比）, system_loading_ration（系统负荷百分比）, 
     T1（冷冻水出水温度）, T2（冷冻水回水温度）, G2（冷冻水泵流量）, 50 * G2 / G20（冷冻水泵频率） , 
-    T3（冷冻水出水温度）, T4（冷冻水回水温度）, G3（冷冻水泵流量）, 50 * G3 / G30（冷冻水泵频率）,
+    T3（冷却水出水温度）, T4（冷却水回水温度）, G3（冷却水泵流量）, 50 * G3 / G30（冷却水泵频率）,
     cold_flu（冷却塔冷幅）, 
     P1（主机功率）, P2（冷冻水泵功率）, P3（冷却水泵功率）, P4（冷却塔功率）, total_P（总功率）,total_cop（系统COP）, 
     open_num（设备开启台数）
@@ -43,7 +43,7 @@ class CCToptimizer():
             T1 = self.problem.T1
             T3 = self.problem.T3
 
-            if abs(self.problem.Q - tempQ) * 100 / tempQ < float(self.problem.yuzhi):
+            if abs(self.problem.Q*self.problem.n - tempQ) * 100 / tempQ < float(self.problem.yuzhi):
                 G2 = tempG2
                 G3 = tempG3
                 T2=T1+6*Q/(G2*7)
@@ -59,14 +59,19 @@ class CCToptimizer():
 
             G20 = self.problem.G20
             u1 = self.problem.u1
-            if G2 <= G20 * u1 or G2 >= G20:
+            if G2 < G20 * u1:
                 T2 = T1 + 6 * Q / (7 * G20 * u1)
+            if G2 > G20:
+                T2 = T1 + 6 * Q / (7 * G20)
 
             G30 = self.problem.G30
             u2 = self.problem.u2
-            if G3 <= G30 * u2 or G3 >= G30:
+            if G3 < G30 * u2 :
                 P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
                 T4 = T3 + 6 * (Q + P1) / (7 * G30 * u2)
+            if G3 > G30:
+                P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
+                T4 = T3 + 6 * (Q + P1) / (7 * G30)
 
             if T2 - T1 < self.problem.t2_tuple[0]:
                 T2 = T1 + self.problem.t2_tuple[0]

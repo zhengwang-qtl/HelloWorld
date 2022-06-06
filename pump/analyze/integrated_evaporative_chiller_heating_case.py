@@ -7,7 +7,7 @@ import geatpy as ea
 """
 
 
-class ACHPHcase(ea.Problem):
+class IECHcase(ea.Problem):
     def __init__(self, Q, TS, initParams, fitting):
         self.A = fitting.A
         self.J = fitting.J
@@ -22,8 +22,8 @@ class ACHPHcase(ea.Problem):
         self.QS = float(initParams.q)  # 单台额定冷水机组负荷QS
         self.nita = float(initParams.efficiency_range)  # 单台高效率冷负荷范围η
         self.max_n = float(initParams.n)  # 最大台数
-        self.T1_range = initParams.ACHP_h_t1_range
-        self.load_rat = initParams.ACHP_h_load_rate
+        self.T1_range = initParams.IEC_h_t1_range
+        self.load_rat = initParams.IEC_h_load_rate
 
         self.n = None  # 台数
 

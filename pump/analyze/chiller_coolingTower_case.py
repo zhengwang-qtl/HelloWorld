@@ -40,15 +40,15 @@ class CCTcase(ea.Problem):
         self.nita = float(initParams.efficiency_range)  # 单台高效率冷负荷范围η
         self.max_n = float(initParams.n)  # 最大台数
         self.lengque_maxn = initParams.lengque_maxn  # 冷水机组最大台数
-        self.T1_range = initParams.t1_range
-        self.load_rat = initParams.load_rat
+        self.T1_range = initParams.CCT_t1_range
+        self.load_rat = initParams.CCT_load_rate
 
         self.n = None  # 台数
 
         self.T1 = None  # 根据计算选取固定T1，之后的进化T2都是在此基础浮动
 
         #  判断是否需要优化计算
-        self.q_min = float(initParams.q_min)  # 单台冷冻水泵最低负荷Qq,Kw
+        self.q_min = float(initParams.q_min)  # 单台冷水机组最低负荷Qq,Kw
         self.ifopt = True
 
         if self.q_min > Q:
@@ -116,6 +116,8 @@ class CCTcase(ea.Problem):
                 self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS
 
         # 计算z
+        self.z=self.n
+        """
         self.z = None
         for i in range(int(self.max_n)):
             if i < Q / self.QS <= (i + 1):
@@ -123,6 +125,7 @@ class CCTcase(ea.Problem):
                 break
         if self.z is None:
             self.z = int(self.max_n)
+        """
 
         if self.selectType <= 4:
             self.z = self.z * self.selectType

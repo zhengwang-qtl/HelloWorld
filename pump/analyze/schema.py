@@ -26,8 +26,20 @@ class InitialParameters:
         self.lamb = 0.65  # 冷却水泵频率下限值λ
         self.yuzhi = 5  # 优化计算设定值%
 
-        self.load_rat = [100, 95, 90, 85, 80, 75, 70, 65, 60]  # 负荷率
-        self.t1_range = []  # 冷冻水出水温度T1
+        self.CCT_load_rate = [100, 95, 90, 85, 80, 75, 70, 65, 60]  # (冷水机组+冷却塔)负荷率（冷水机组）
+        self.CCT_t1_range = []  # (冷水机组+冷却塔)冷冻水出水温度T1（冷水机组）
+
+        self.ACHP_r_load_rate = [100, 95, 90, 85, 80, 75, 70, 65, 60]  # (风冷热泵)负荷率（冷水机组）
+        self.ACHP_r_t1_range = []  # (风冷热泵)冷冻水出水温度T1（冷水机组）
+
+        self.ACHP_h_load_rate = [100, 95, 90, 85, 80, 75, 70, 65, 60]  # (风冷热泵)负荷率（热水机组）
+        self.ACHP_h_t1_range = []  # (风冷热泵)冷冻水出水温度T1（热水机组）
+
+        self.IEC_r_load_rate = [100, 95, 90, 85, 80, 75, 70, 65, 60]  # (一体式蒸发)负荷率（冷水机组）
+        self.IEC_r_t1_range = []  # (一体式蒸发)冷冻水出水温度T1（冷水机组）
+
+        self.IEC_h_load_rate = [100, 95, 90, 85, 80, 75, 70, 65, 60]  # (一体式蒸发)负荷率（热水机组）
+        self.IEC_h_t1_range = []  # (一体式蒸发)冷冻水出水温度T1（热水机组）
 
         self.f_ts = 20.0  # 室外湿球温度
         self.f_bh_td = 10.0  # 板换温差
@@ -36,6 +48,8 @@ class InitialParameters:
         self.f_ct_td = 10.0  # 冷却塔温差
         self.f_w_td = 6.0  # 供回水温差
 
+        self.heating_q_min=100.0 # 制热最低负荷，Kw
+        self.refrigeration_q_min=100.0 # 制冷最低负荷，Kw
 
 # 主机参数拟合
 class MainFitting:

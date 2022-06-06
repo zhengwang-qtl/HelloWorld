@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import geatpy as ea
 
-class ACHPRoptimizer():
+
+class IECHoptimizer():
     def __init__(self, problem):
         self.problem = problem
         """==================================种群设置=================================="""
@@ -61,7 +62,7 @@ class ACHPRoptimizer():
             if T2 - T1 > self.problem.t2_tuple[1]:
                 T2 = T1 + self.problem.t2_tuple[1]
 
-            P1 = self.func_P1((self.problem.TS, T1, T2, Q), self.problem.K)
+            P1 = self.func_P1((self.problem.TS, T1, Q), self.problem.J)
             A0, A1, A2 = self.problem.A
 
             G2 = 6 * Q / (7 * (T2 - T1))
@@ -84,10 +85,9 @@ class ACHPRoptimizer():
                     round(50 * G2 / G20, 3), round(P1, 4), round(P2, 3), round(total_P, 3),
                     round(total_cop, 3), open_num)
 
-    def func_P1(self, T, K):
-        T0, T1, T2, Q = T
-        K0, K1, K2, K3, K4, K5, K6, K7, K8, K9, K10, K11, K12, K13, K14, K15, K16, K17 = K
-        P1 = K0 + K1 * T1 + K2 * T2 + K3 * Q + K4 * Q * Q + K5 * T1 * T1 + K6 * T2 * T2 + K7 * Q * T1 + K8 * Q * T2 + K9 * T1 * T2 + K10 * (
-                T2 - T1) + K11 * T0 + K12 * (T2 - T1) * (T2 - T1) + K13 * T0 * T0 + K14 * Q * (
-                     T2 - T1) + K15 * Q * T0 + K16 * (T2 - T1) * T0 + K17 * (T0 - T1)
+    def func_P1(self, T, J):
+        T0, T1, Q = T
+        J0, J1, J2, J3, J4, J5, J6, J7, J8, J9 = J
+        P1 = J0 + J1 * T1 + J2 * Q + J3 * Q * Q + J4 * T1 * T1 + J5 * Q * T1 + J6 * T0 + J7 * T0 * T0 + J8 * Q * T0 + J9 * (
+                T1 - T0)
         return P1

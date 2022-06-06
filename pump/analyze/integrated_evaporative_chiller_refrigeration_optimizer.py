@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import geatpy as ea
 
-class ACHPRoptimizer():
+class IECRoptimizer():
     def __init__(self, problem):
         self.problem = problem
         """==================================种群设置=================================="""
