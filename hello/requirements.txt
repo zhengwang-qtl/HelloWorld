@@ -1,4 +1,4 @@
 geatpy==2.6.0
-numpy
+numpy==1.20.2
 openpyxl==3.0.9
 scipy==1.7.3

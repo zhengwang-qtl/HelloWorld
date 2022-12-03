@@ -74,11 +74,7 @@ def load(path: str):
             init_params.yuzhi = float(sheet["B29"].value)
 
             for i in range(9):
-                init_params.CCT_t1_range.append(float(sheet.cell(2, i + 2).value))
-                init_params.ACHP_r_t1_range.append(float(sheet.cell(2, i + 2).value))
-                init_params.ACHP_h_t1_range.append(float(sheet.cell(2, i + 2).value))
-                init_params.IEC_r_t1_range.append(float(sheet.cell(2, i + 2).value))
-                init_params.IEC_h_t1_range.append(float(sheet.cell(2, i + 2).value))
+                init_params.t1_range.append(float(sheet.cell(2, i + 2).value))
 
         elif sheet.title == "主机参数拟合":
             main_fittings = list()
@@ -232,11 +228,11 @@ def load(path: str):
                     val = float(sheet.cell(27, 2 + i).value)
                 fitting_coefficients.e.append(val)
         elif sheet.title == "蒸发冷一体机组系数拟合":
-            p5_fittings = list()
+            main_fittings = list()
             for rowidx, row in enumerate(sheet.rows):
-                if rowidx <= 0:
+                if rowidx <= 1:
                     continue
-                if row[0].value is None:
+                if row[1].value is None:
                     break
                 entry = P5Fitting()
                 entry.T2 = float(row[0].value)
@@ -246,11 +242,11 @@ def load(path: str):
                 entry.P = float(row[4].value)
                 p5_fittings.append(entry)
         elif sheet.title == "风冷热泵机组系数拟合":
-            p6_fittings = list()
+            main_fittings = list()
             for rowidx, row in enumerate(sheet.rows):
-                if rowidx <= 0:
+                if rowidx <= 1:
                     continue
-                if row[0].value is None:
+                if row[1].value is None:
                     break
                 entry = P6Fitting()
                 entry.T2 = float(row[0].value)
