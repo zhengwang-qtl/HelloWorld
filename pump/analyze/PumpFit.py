@@ -169,8 +169,8 @@ class PumpFitting():
         temp_Tdelta = []
         temp_TS = []
         for i in WetBulb_data:
-            temp_Tdelta.append(i.amplitude)
-            temp_TS.append(i.temp)
+            temp_Tdelta.append(i.td)
+            temp_TS.append(i.ts)
         TS = np.array(temp_TS)
         Tdelta = np.array(temp_Tdelta)
         self.Tdelta_x_data_1to1 = (TS)
@@ -197,8 +197,8 @@ class PumpFitting():
         temp_Tdelta = []
         temp_TS = []
         for i in WetBulb_data:
-            temp_Tdelta.append(i.amplitude)
-            temp_TS.append(i.temp)
+            temp_Tdelta.append(i.td)
+            temp_TS.append(i.ts)
         TS = np.array(temp_TS)
         Tdelta = np.array(temp_Tdelta)
         self.Tdelta_x_data_2to1 = (TS)
@@ -224,8 +224,8 @@ class PumpFitting():
         temp_Tdelta = []
         temp_TS = []
         for i in WetBulb_data:
-            temp_Tdelta.append(i.amplitude)
-            temp_TS.append(i.temp)
+            temp_Tdelta.append(i.td)
+            temp_TS.append(i.ts)
         TS = np.array(temp_TS)
         Tdelta = np.array(temp_Tdelta)
         self.Tdelta_x_data_3to1 = (TS)
@@ -256,8 +256,8 @@ class PumpFitting():
         temp_Tdelta = []
         temp_TS = []
         for i in WetBulb_data:
-            temp_Tdelta.append(i.amplitude)
-            temp_TS.append(i.temp)
+            temp_Tdelta.append(i.td)
+            temp_TS.append(i.ts)
         TS = np.array(temp_TS)
         Tdelta = np.array(temp_Tdelta)
         self.Tdelta_x_data_4to1 = (TS)
@@ -284,8 +284,8 @@ class PumpFitting():
         temp_Tdelta = []
         temp_TS = []
         for i in WetBulb_data:
-            temp_Tdelta.append(i.amplitude)
-            temp_TS.append(i.temp)
+            temp_Tdelta.append(i.td)
+            temp_TS.append(i.ts)
         TS = np.array(temp_TS)
         Tdelta = np.array(temp_Tdelta)
         self.Tdelta_x_data_3to2 = (TS)
@@ -311,8 +311,8 @@ class PumpFitting():
         temp_Tdelta = []
         temp_TS = []
         for i in WetBulb_data:
-            temp_Tdelta.append(i.amplitude)
-            temp_TS.append(i.temp)
+            temp_Tdelta.append(i.td)
+            temp_TS.append(i.ts)
         TS = np.array(temp_TS)
         Tdelta = np.array(temp_Tdelta)
         self.Tdelta_x_data_4to3 = (TS)
@@ -378,11 +378,11 @@ class PumpFitting():
         temp_Q = []
         temp_P = []
         for i in P5_data:
-            temp_T0.append(i.T0)
-            temp_T1.append(i.T1)
-            temp_T2.append(i.T2)
-            temp_Q.append(i.Q)
-            temp_P.append(i.P)
+            temp_T0.append(i.t0)
+            temp_T1.append(i.t1)
+            temp_T2.append(i.t2)
+            temp_Q.append(i.q)
+            temp_P.append(i.p5)
         T0 = np.array(temp_T0)
         T1 = np.array(temp_T1)
         T2 = np.array(temp_T2)
@@ -421,10 +421,10 @@ class PumpFitting():
         temp_Q = []
         temp_P = []
         for i in P6_data:
-            temp_T0.append(i.T0)
-            temp_T1.append(i.T1)
-            temp_Q.append(i.Q)
-            temp_P.append(i.P)
+            temp_T0.append(i.t0)
+            temp_T1.append(i.t1)
+            temp_Q.append(i.q)
+            temp_P.append(i.p6)
         T0 = np.array(temp_T0)
         T1 = np.array(temp_T1)
         Q = np.array(temp_Q)

@@ -67,69 +67,56 @@ class MainFitting(BaseModel):
     t4: float
     cop: float
 
-
 # 冷冻水泵参数拟合
-class Pump2Fitting:
-    def __init__(self):
-        self.g2 = 0.0  # 流量（m3/h)
-        self.p2 = 0.0  # 轴功率(kw)
-
+class Pump2Fitting(BaseModel):
+    g2: float
+    p2: float
 
 # 冷却水泵参数拟合
 class Pump3Fitting:
-    def __init__(self):
-        self.g3 = 0.0  # 流量（m3/h)
-        self.p3 = 0.0  # 轴功率(kw)
+    g3: float
+    p3: float
 
+# 冷却塔
+class WetBulbFitting(BaseModel):
+    ts: float
+    td: float
 
 # 冷却塔 一对一
-class WetBulbFitting_1to1:
-    def __init__(self):
-        self.temp = 0.0  # 湿球温度
-        self.amplitude = 0.0  # 冷幅
+class WetBulbFitting_1to1(BaseModel):
+    ts: float
+    td: float
 
 
 # 冷却塔 二对一
-class WetBulbFitting_2to1:
-    def __init__(self):
-        self.temp = 0.0
-        self.amplitude = 0.0
-
+class WetBulbFitting_2to1(BaseModel):
+    ts: float
+    td: float
 
 # 冷却塔 三对一
-class WetBulbFitting_3to1:
-    def __init__(self):
-        self.temp = 0.0
-        self.amplitude = 0.0
-
+class WetBulbFitting_3to1(BaseModel):
+    ts: float
+    td: float
 
 # 冷却塔 四对一
-class WetBulbFitting_4to1:
-    def __init__(self):
-        self.temp = 0.0
-        self.amplitude = 0.0
-
+class WetBulbFitting_4to1(BaseModel):
+    ts: float
+    td: float
 
 # 冷却塔 三对二
-class WetBulbFitting_3to2:
-    def __init__(self):
-        self.temp = 0.0
-        self.amplitude = 0.0
-
+class WetBulbFitting_3to2(BaseModel):
+    ts: float
+    td: float
 
 # 冷却塔 四对三
-class WetBulbFitting_4to3:
-    def __init__(self):
-        self.temp = 0.0
-        self.amplitude = 0.0
-
+class WetBulbFitting_4to3(BaseModel):
+    ts: float
+    td: float
 
 # 冷却塔 P4功率与流量的拟合
-class P4Fitting:
-    def __init__(self):
-        self.g = 0.0  # 水流量G（m3/h）
-        self.p4 = 0.0  # 功率P4（Kw）
-
+class P4Fitting(BaseModel):
+    g: float
+    p4: float
 
 # 拟合结果
 class FittingCoefficients:
@@ -191,18 +178,15 @@ class QDeltaEntry:
 
 # 蒸发冷一体机组系数（制冷工况）
 class P5Fitting:
-    def __init__(self):
-        self.T0 = 0.0
-        self.T1 = 0.0
-        self.T2 = 0.0
-        self.Q = 0.0
-        self.P = 0.0
-
+    t0: float
+    t1: float
+    t2: float
+    q: float
+    p5: float
 
 # 风冷热泵机组系数（制热工况）
 class P6Fitting:
-    def __init__(self):
-        self.T0 = 0.0
-        self.T1 = 0.0
-        self.Q = 0.0
-        self.P = 0.0
+    t0: float
+    t1: float
+    q: float
+    p6: float
