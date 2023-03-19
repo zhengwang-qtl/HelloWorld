@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import geatpy as ea
+from analyze.schema import *
 
 """
     
@@ -8,47 +9,142 @@ import geatpy as ea
 
 
 class CCTcase(ea.Problem):
-    def __init__(self, Q, TS, initParams, fitting):
-        self.A = fitting.A
-        self.B = fitting.B
-        self.C = fitting.C
+    def __init__(self, Q, TS, Init: Init, Params):
+        arr_A = []
+        arr_A.append(Params.chilled_water_pump.A0)
+        arr_A.append(Params.chilled_water_pump.A1)
+        arr_A.append(Params.chilled_water_pump.A2)
 
-        self.D_1to1 = fitting.D_1to1
-        self.D_2to1 = fitting.D_2to1
-        self.D_3to1 = fitting.D_3to1
-        self.D_4to1 = fitting.D_4to1
-        self.D_3to2 = fitting.D_3to2
-        self.D_4to3 = fitting.D_4to3
+        arr_B = []
+        arr_B.append(Params.chiller.B0)
+        arr_B.append(Params.chiller.B1)
+        arr_B.append(Params.chiller.B2)
+        arr_B.append(Params.chiller.B3)
+        arr_B.append(Params.chiller.B4)
+        arr_B.append(Params.chiller.B5)
+        arr_B.append(Params.chiller.B6)
+        arr_B.append(Params.chiller.B7)
+        arr_B.append(Params.chiller.B8)
+        arr_B.append(Params.chiller.B9)
+        arr_B.append(Params.chiller.B10)
+        arr_B.append(Params.chiller.B11)
+        arr_B.append(Params.chiller.B12)
+        arr_B.append(Params.chiller.B13)
+        arr_B.append(Params.chiller.B14)
+        arr_B.append(Params.chiller.B15)
+        arr_B.append(Params.chiller.B16)
+        arr_B.append(Params.chiller.B17)
+        arr_B.append(Params.chiller.B18)
+        arr_B.append(Params.chiller.B19)
+        arr_B.append(Params.chiller.B20)
+        arr_B.append(Params.chiller.B21)
+        arr_B.append(Params.chiller.B22)
+        arr_B.append(Params.chiller.B23)
+
+        arr_C = []
+        arr_C.append(Params.cooling_water_pump.C0)
+        arr_C.append(Params.cooling_water_pump.C1)
+        arr_C.append(Params.cooling_water_pump.C2)
+
+        arr_D_1to1 = []
+        arr_D_2to1 = []
+        arr_D_3to1 = []
+        arr_D_4to1 = []
+        arr_D_3to2 = []
+        arr_D_4to3 = []
+        for s in Params.cooling_tower.cooling_amplitude_s:
+            if s.type == "1to1":
+                arr_D_1to1.append(s.D0)
+                arr_D_1to1.append(s.D1)
+                arr_D_1to1.append(s.D2)
+            elif s.type == "2to1":
+                arr_D_2to1.append(s.D0)
+                arr_D_2to1.append(s.D1)
+                arr_D_2to1.append(s.D2)
+            elif s.type == "3to1":
+                arr_D_3to1.append(s.D0)
+                arr_D_3to1.append(s.D1)
+                arr_D_3to1.append(s.D2)
+            elif s.type == "4to1":
+                arr_D_4to1.append(s.D0)
+                arr_D_4to1.append(s.D1)
+                arr_D_4to1.append(s.D2)
+                arr_D_4to1.append(s.D3)
+            elif s.type == "3to2":
+                arr_D_3to2.append(s.D0)
+                arr_D_3to2.append(s.D1)
+                arr_D_3to2.append(s.D2)
+            else:  # 4to3
+                arr_D_4to3.append(s.D0)
+                arr_D_4to3.append(s.D1)
+                arr_D_4to3.append(s.D2)
+
+        arr_E = []
+        arr_E.append(Params.cooling_tower.power.E0)
+        arr_E.append(Params.cooling_tower.power.E1)
+        arr_E.append(Params.cooling_tower.power.E2)
+        arr_E.append(Params.cooling_tower.power.E3)
+
+        self.A = arr_A
+        self.B = arr_B
+        self.C = arr_C
+
+        self.D_1to1 = arr_D_1to1
+        self.D_2to1 = arr_D_2to1
+        self.D_3to1 = arr_D_3to1
+        self.D_4to1 = arr_D_4to1
+        self.D_3to2 = arr_D_3to2
+        self.D_4to3 = arr_D_4to3
         self.typeToD = {1: self.D_1to1, 2: self.D_2to1, 3: self.D_3to1, 4: self.D_4to1, 5: self.D_3to2, 6: self.D_4to3}
 
-        self.E = fitting.E
+        self.E = arr_E
 
-        self.selectType = initParams.calcType
-        self.yuzhi = initParams.yuzhi
-        self.G20 = float(initParams.G20)  # G2额定功率
-        self.u1 = float(initParams.mu)  # G2限定值
-        self.P20 = float(initParams.p20)
-        self.G30 = float(initParams.G30)  # G3额定功率
-        self.u2 = float(initParams.lamb)  # G3限定值
-        self.t3_min = float(initParams.t3_min)
-        self.t2_tuple = (float(initParams.delta_t1_range[0]), float(initParams.delta_t1_range[1]))  # t2与t1差值的范围
-        self.t4_tuple = (float(initParams.delta_t2_range[0]), float(initParams.delta_t2_range[1]))  # t4与t3差值的范围
-        self.P0 = float(initParams.P0)  # 一定条件下P4=P0
+        calcType = Init.cooling_tower.calcType
+        if calcType == "1to1":
+            self.selectType = 1
+        elif calcType == "2to1":
+            self.selectType = 2
+        elif calcType == "3to1":
+            self.selectType = 3
+        elif calcType == "4to1":
+            self.selectType = 4
+        elif calcType == "3to2":
+            self.selectType = 5
+        elif calcType == "4to3":
+            self.selectType = 6
+        else:
+            self.selectType = 0
+
+        self.yuzhi = Init.basic.optimize_calculation_set_value
+        self.G20 = Init.chilled_water_pump.g20  # G2额定功率
+        self.u1 = Init.chilled_water_pump.u  # G2限定值
+        self.P20 = Init.chilled_water_pump.p20
+        self.G30 = Init.cooling_water_pump.g30  # G3额定功率
+        self.u2 = Init.cooling_water_pump.u  # G3限定值
+        self.t3_min = Init.chiller.t3_min
+        self.t2_tuple = (Init.basic.chilled_water_t_range[0], Init.basic.chilled_water_t_range[1])  # t2与t1差值的范围
+        self.t4_tuple = (Init.basic.cooling_water_t_range[0], Init.basic.cooling_water_t_range[1])  # t4与t3差值的范围
+        self.P0 = Init.cooling_tower.p0  # 一定条件下P4=P0
         self.Q = float(Q)  # 负荷Q
         self.TS = float(TS)  # 湿球温度
-        self.QS = float(initParams.q)  # 单台额定冷水机组负荷QS
-        self.nita = float(initParams.efficiency_range)  # 单台高效率冷负荷范围η
-        self.max_n = float(initParams.n)  # 最大台数
-        self.lengque_maxn = initParams.lengque_maxn  # 冷水机组最大台数
-        self.T1_range = initParams.CCT_t1_range
-        self.load_rat = initParams.CCT_load_rate
+        self.QS = Init.chiller.q  # 单台额定冷水机组负荷QS
+        self.nita = Init.chiller.efficiency_range  # 单台高效率冷负荷范围η
+        self.max_n = Init.chiller.n  # 最大台数
+        self.lengque_maxn = Init.cooling_tower.max_n  # 冷却塔的最大台数
+        t1_range = []
+        load_rate = []
+        for item in Init.chiller.load_rate_with_t_c:
+            t1_range.append(item.out_t)
+            load_rate.append(item.load_rate)
+        self.T1_range = t1_range
+        self.load_rat = load_rate
 
         self.n = None  # 台数
 
         self.T1 = None  # 根据计算选取固定T1，之后的进化T2都是在此基础浮动
 
         #  判断是否需要优化计算
-        self.q_min = float(initParams.q_min)  # 单台冷水机组最低负荷Qq,Kw
+        self.q_min = float(Init.chiller.q_min)  # 单台冷水机组最低负荷Qq,Kw
         self.ifopt = True
 
         if self.q_min > Q:
@@ -116,7 +212,7 @@ class CCTcase(ea.Problem):
                 self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS
 
         # 计算z
-        self.z=self.n
+        self.z = self.n
         """
         self.z = None
         for i in range(int(self.max_n)):

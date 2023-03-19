@@ -343,7 +343,7 @@ class PumpFitting():
         temp_G3_P4 = []
         temp_P4 = []
         for i in P4_data:
-            temp_G3_P4.append(i.g)
+            temp_G3_P4.append(i.g4)
             temp_P4.append(i.p4)
         G3_P4 = np.array(temp_G3_P4)
         P4 = np.array(temp_P4)

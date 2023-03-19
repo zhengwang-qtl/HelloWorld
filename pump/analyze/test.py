@@ -1,6 +1,8 @@
 
-def test(a,b):
-    print(a/b)
+def test(a: float):
+    arr_A = []
+    arr_A[0] =100
+    print(a)
 
 if __name__ == '__main__':
-    test(int(3),int(2))
+    test(-2.1e-05*10)

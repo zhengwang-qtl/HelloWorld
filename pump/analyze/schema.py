@@ -1,4 +1,78 @@
 from pydantic import BaseModel
+from typing import Union, List
+
+
+class Init_basic(BaseModel):
+    calculation_type: Union[int,None] =None # 计算类型 0(单冷型) 1(冷暖型)
+    cold_source: Union[int,None] =None  # 冷源 0(冷水机组 + 冷却塔)，1(冷水机组 + 冷却塔(免费)) ，2（一体式蒸发冷水机组（单冷，冷暖))，3(四管制风冷热泵)，4（热泵（单冷，冷暖））
+    heat_source: Union[int,None] =None  # 热源 0（锅炉），2（一体式蒸发冷水机组），3（四管制风冷热泵），4（热泵）
+    optimize_calculation_set_value: Union[float,None]=None  # 优化计算设定值
+    chilled_water_t_range: Union[List[float],None]=None # 冷冻水进出口温差 T2 - T1
+    cooling_water_t_range: Union[List[float],None]=None # 冷却水进出口温差 T2 - T1
+    heating_q_min: Union[float,None]=None # 制热主机开启最低负荷，Kw
+    refrigeration_q_min: Union[float,None]=None # 制冷主机开启最低负荷，Kw
+    tmp_op_type: Union[str,None] = None #临时计算类型
+
+
+class load_rate_with_t(BaseModel):
+    load_rate: Union[float,None]=None # 负荷率，%
+    out_t: Union[float,None]=None # 出水温度
+
+class Init_chiller(BaseModel): #冷水机组
+    q: Union[float,None]=None # 单台额定冷水机组额定负荷Qs，KW
+    n: Union[int,None]=None,  # 冷水机组台数，台
+    efficiency_range: Union[float,None]=None # 单台高效率冷负荷范围η，%
+    t3_min: Union[float,None]=None  # 冷却塔出水（机组允许）最低温度T3
+    q_min: Union[float,None]=None # 单台冷水机组最低负荷Qq，Kw
+    load_rate_with_t_c: Union[List[load_rate_with_t],None]=None   # 负荷率与出水温度（冷水机组）
+
+class Init_chilled_water_pump(BaseModel): #冷冻水泵
+    h: Union[float,None]=None  # 单台冷冻水泵扬程H，m
+    p20: Union[float,None]=None  # 单台冷冻水泵功率P2，Kw
+    g20: Union[float,None]=None  # 单台冷冻水泵的额定流量G，m3/h
+    max_n2: Union[int,None]=None  # 冷冻水泵最大台数
+    u: Union[float,None]=None  # 冷冻水泵变频频率下限值μ
+
+class Init_cooling_water_pump(BaseModel): #冷却水泵
+    h: Union[float,None]=None  # 单台冷却水泵扬程H，m
+    p30: Union[float,None]=None  # 单台冷却水泵功率P2，Kw
+    g30: Union[float,None]=None # 单台冷冻水泵的额定流量G，m3/h
+    max_n3: Union[int,None]=None  # 冷却水泵最大台数
+    u: Union[float,None]=None  # 冷却水泵频率下限值λ
+
+class Init_cooling_tower(BaseModel): #冷却塔
+    p0: Union[float,None]=None  # 单台冷却塔功率P0，Kw
+    max_n: Union[int,None]=None  # 冷却塔最大台数
+    g0: Union[float,None]=None  # 单台冷却塔的额定流量G，m3/h
+    w0: Union[float,None]=None # 单台冷却塔的风量W，m3/h
+    calcType: Union[str,None]=None #冷却塔计算类型  1to1 - 1对1 2to1 - 2对1 ... 4to3 - 4对3
+
+class Init_cooling_tower_free_calculation(BaseModel):  #冷却塔免费冷源
+    ts: Union[float,None]=None   # 室外湿球温度
+    bh_td: Union[float,None]=None   # 板换温差
+    bh_efficiency: Union[float,None]=None   # 板换效率
+    min_load: Union[float,None]=None   # 最低负荷
+    ct_td: Union[float,None]=None   # 冷却塔温差
+    w_td: Union[float,None]=None  # 供回水温差
+
+class Init_air_cooled_heat_pump(BaseModel): #风冷热泵
+    load_rate_with_t_c: Union[List[load_rate_with_t],None]=None # 负荷率与出水温度（冷水机组）
+    load_rate_with_t_h: Union[List[load_rate_with_t], None] = None # 负荷率与出水温度（热水机组）
+
+class Init_integrated_evaporative_chiller(BaseModel): #蒸发冷一体机组
+    load_rate_with_t_c: Union[List[load_rate_with_t], None] = None # 负荷率与出水温度（冷水机组）
+    load_rate_with_t_h: Union[List[load_rate_with_t], None] = None # 负荷率与出水温度（热水机组）
+
+class Init(BaseModel):
+    basic: Union[Init_basic,None] =None
+    chiller: Union[Init_chiller,None]=None
+    chilled_water_pump: Union[Init_chilled_water_pump,None]=None
+    cooling_water_pump: Union[Init_cooling_water_pump,None]=None
+    cooling_tower: Union[Init_cooling_tower,None]=None
+    cooling_tower_free_calculation: Union[Init_cooling_tower_free_calculation,None]=None
+    air_cooled_heat_pump: Union[Init_air_cooled_heat_pump,None]=None
+    integrated_evaporative_chiller: Union[Init_integrated_evaporative_chiller,None]=None
+
 
 
 # 初始化参数
@@ -56,16 +130,15 @@ class InitialParameters:
         self.refrigeration_q_min = 100.0  # 制冷最低负荷，Kw
 
 
+
 # 主机参数拟合
 class MainFitting(BaseModel):
-    load_percentage: float
     q: float
     p1: float
     t1: float
     t2: float
     t3: float
     t4: float
-    cop: float
 
 # 冷冻水泵参数拟合
 class Pump2Fitting(BaseModel):
@@ -73,7 +146,7 @@ class Pump2Fitting(BaseModel):
     p2: float
 
 # 冷却水泵参数拟合
-class Pump3Fitting:
+class Pump3Fitting(BaseModel):
     g3: float
     p3: float
 
@@ -115,7 +188,7 @@ class WetBulbFitting_4to3(BaseModel):
 
 # 冷却塔 P4功率与流量的拟合
 class P4Fitting(BaseModel):
-    g: float
+    g4: float
     p4: float
 
 # 拟合结果
@@ -177,7 +250,7 @@ class QDeltaEntry:
 
 
 # 蒸发冷一体机组系数（制冷工况）
-class P5Fitting:
+class P5Fitting(BaseModel):
     t0: float
     t1: float
     t2: float
@@ -185,7 +258,7 @@ class P5Fitting:
     p5: float
 
 # 风冷热泵机组系数（制热工况）
-class P6Fitting:
+class P6Fitting(BaseModel):
     t0: float
     t1: float
     q: float
