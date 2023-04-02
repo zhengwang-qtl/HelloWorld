@@ -73,7 +73,6 @@ class chiller_r_ret(BaseModel):
     MAPE: Union[float, None] = None
     RMSE: Union[float, None] = None
 
-
 class chilled_water_pump_ret(BaseModel):
     A0: Union[float, None] = None
     A1: Union[float, None] = None
@@ -204,15 +203,39 @@ class integrated_evaporative_chiller(BaseModel):
     heat: Union[integrated_evaporative_chiller_h_ret, None] = None
     refrigeration: Union[integrated_evaporative_chiller_r_ret, None] = None
 
+class param_chiller(BaseModel):
+    min: Union[chiller_r_ret, None] = None
+    max: Union[chiller_r_ret, None] = None
+
+class param_chilled_water_pump(BaseModel):
+    min_first: Union[chilled_water_pump_ret, None] = None
+    min_second: Union[chilled_water_pump_ret, None] = None
+    max_first: Union[chilled_water_pump_ret, None] = None
+    max_second: Union[chilled_water_pump_ret, None] = None
+
+class param_heat_water_pump(BaseModel):
+    min_first: Union[chilled_water_pump_ret, None] = None
+    min_second: Union[chilled_water_pump_ret, None] = None
+    max_first: Union[chilled_water_pump_ret, None] = None
+    max_second: Union[chilled_water_pump_ret, None] = None
+
+class param_cooling_water_pump(BaseModel):
+    min: Union[cooling_water_pump_ret, None] = None
+    max: Union[cooling_water_pump_ret, None] = None
+
+class param_cooling_tower(BaseModel):
+    min: Union[cooling_tower_union, None] = None
+    max: Union[cooling_tower_union, None] = None
+
 
 class Params(BaseModel):
-    chiller: Union[chiller_r_ret, None] = None
-    chilled_water_pump: Union[chilled_water_pump_ret, None] = None
-    cooling_water_pump: Union[cooling_water_pump_ret, None] = None
-    cooling_tower: Union[cooling_tower_union, None] = None
+    chiller: Union[param_chiller, None] = None
+    chilled_water_pump: Union[param_chilled_water_pump, None] = None
+    chilled_water_pump: Union[param_heat_water_pump, None] = None
+    cooling_water_pump: Union[param_cooling_water_pump, None] = None
+    cooling_tower: Union[param_cooling_tower, None] = None
     air_cooled_heat_pump: Union[air_cooled_heat_pump, None] = None
     integrated_evaporative_chiller: Union[integrated_evaporative_chiller, None] = None
-
 
 class op_data(BaseModel):
     year: Union[int, None] = None
