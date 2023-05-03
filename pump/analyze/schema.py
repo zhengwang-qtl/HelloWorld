@@ -3,9 +3,9 @@ from typing import Union, List
 
 
 class Init_basic(BaseModel):
-    calculation_type: Union[int,None] =None # 计算类型 0(单冷型) 1(冷暖型)
-    cold_source: Union[int,None] =None  # 冷源 0(冷水机组 + 冷却塔)，1(冷水机组 + 冷却塔(免费)) ，2（一体式蒸发冷水机组（单冷，冷暖))，3(四管制风冷热泵)，4（热泵（单冷，冷暖））
-    heat_source: Union[int,None] =None  # 热源 0（锅炉），2（一体式蒸发冷水机组），3（四管制风冷热泵），4（热泵）
+    calculation_type: Union[str,None] =None # 计算类型 singlechiller(单冷型) chiller_heat(冷暖型)
+    cold_source: Union[str,None] =None  # 冷源  chiller(冷水机组),integrated_evaporative_chiller（蒸发冷一体机),air_cooled_heat_pump（空气源热泵）
+    heat_source: Union[str,None] =None  # 热源  boiler（锅炉）,integrated_evaporative_chiller（蒸发冷一体机),	air_cooled_heat_pump（空气源热泵）
     optimize_calculation_set_value: Union[float,None]=None  # 优化计算设定值
 #    chilled_water_t_range: Union[List[float],None]=None # 冷冻水进出口温差 T2 - T1
     cooling_water_t_range: Union[List[float],None]=None # 冷却水进出口温差 T2 - T1
@@ -13,19 +13,27 @@ class Init_basic(BaseModel):
     second_chilled_water_t_range: Union[List[float],None]=None #二次泵冷冻水进出口温差范围
     first_heat_water_t_range: Union[List[float], None] = None  # 一次泵热水水进出口温差范围
     second_heat_water_t_range: Union[List[float], None] = None  # 二次泵热水水进出口温差范围
-    cold_water_model: Union[str, None] = None #冷水系统型式
-    heat_water_model: Union[str, None] = None #热水系统型式
+    cold_water_model: Union[str, None] = None #冷水系统型式 冷水系统型式,first_pump_system_chiller（一次泵系统）,second_pump_system_chiller（二次泵系统）
+    heat_water_model: Union[str, None] = None #热水系统型式 first_pump_system_heat（一次泵系统）,second_pump_system_heat（二次泵系统）
     NO_chilled_t: Union[float, None] = None  # 非制冷温度
     NO_heat_t: Union[float, None] = None  # 非制热区温度
     heating_q_min: Union[float, None] = None  # 制热主机开启最低负荷，Kw
     refrigeration_q_min: Union[float, None] = None  # 制冷主机开启最低负荷，Kw
-    refrigeration_pump_collocate: Union[int,None] =None  # 0 否 1是 冷水泵是否大小搭配
-    heat_pump_collocate: Union[int,None] =None  #  否 1是  热水泵是否大小搭配
+    refrigeration_pump_collocate: Union[int,None] =None  # 冷水泵是否大小搭配 cold_big_small_1冷水泵大小搭配,cold_big_small_0冷水泵不大小搭配
+    heat_pump_collocate: Union[int,None] =None  # 热水泵是否大小搭配 heat_big_small_1冷水泵大小搭配,heat_big_small_0冷水泵不大小搭配
     tmp_op_type: Union[str, None] = None  # 临时计算类型
 
 class load_rate_with_t(BaseModel):
     load_rate: Union[float,None]=None # 负荷率，%
-    out_t: Union[float,None]=None # 出水温度fefe
+    out_t: Union[float,None]=None # 出水温度
+
+class Load_rate_with_t_c(BaseModel):
+    load_rate: Union[float,None]=None # 负荷率，%
+    cold_out_first_t: Union[float,None]=None # 一次泵冷水出水温度
+    cold_out_second_t: Union[float, None] = None  # 二次泵冷水出水温度
+    heat_out_first_t: Union[float, None] = None  # 一次泵热水出水温度
+    heat_out_second_t: Union[float, None] = None  # 二次泵热水出水温度
+
 
 class Init_chiller_model(BaseModel): #冷水机组
     q: Union[float,None]=None # 单台额定冷水机组额定负荷Qs，KW
@@ -33,11 +41,11 @@ class Init_chiller_model(BaseModel): #冷水机组
     efficiency_range: Union[float,None]=None # 单台高效率冷负荷范围η，%
     t3_min: Union[float,None]=None  # 冷却塔出水（机组允许）最低温度T3
     q_min: Union[float,None]=None # 单台冷水机组最低负荷Qq，Kw
-    load_rate_with_t_c: Union[List[load_rate_with_t],None]=None   # 负荷率与出水温度（冷水机组）
 
 class Init_chiller(BaseModel):
     min: Union[Init_chiller_model,None]=None #小冷水机组
     max: Union[Init_chiller_model,None]=None #大冷水机组
+    load_rate_with_t_c: Union[List[Load_rate_with_t_c],None]=None #冷水机组 负荷率与出水温度
 
 class Init_chilled_water_pump_model(BaseModel): #冷冻水泵 / 热水水泵
     h: Union[float,None]=None  # 单台冷冻水泵扬程H，m

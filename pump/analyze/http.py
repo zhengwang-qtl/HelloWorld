@@ -21,20 +21,20 @@ from analyze.integrated_evaporative_chiller_heating_optimizer import IECHoptimiz
 app = FastAPI()
 
 app.add_middleware(
-        CORSMiddleware,
-        # 允许跨域的源列表，例如 ["http://www.example.org"] 等等，["*"] 表示允许任何源
-        allow_origins=["*"],
-        # 跨域请求是否支持 cookie，默认是 False，如果为 True，allow_origins 必须为具体的源，不可以是 ["*"]
-        allow_credentials=False,
-        # 允许跨域请求的 HTTP 方法列表，默认是 ["GET"]
-        allow_methods=["*"],
-        # 允许跨域请求的 HTTP 请求头列表，默认是 []，可以使用 ["*"] 表示允许所有的请求头
-        # 当然 Accept、Accept-Language、Content-Language 以及 Content-Type 总之被允许的
-        allow_headers=["*"],
-        # 可以被浏览器访问的响应头, 默认是 []，一般很少指定
-        # expose_headers=["*"]
-        # 设定浏览器缓存 CORS 响应的最长时间，单位是秒。默认为 600，一般也很少指定
-        # max_age=1000
+    CORSMiddleware,
+    # 允许跨域的源列表，例如 ["http://www.example.org"] 等等，["*"] 表示允许任何源
+    allow_origins=["*"],
+    # 跨域请求是否支持 cookie，默认是 False，如果为 True，allow_origins 必须为具体的源，不可以是 ["*"]
+    allow_credentials=False,
+    # 允许跨域请求的 HTTP 方法列表，默认是 ["GET"]
+    allow_methods=["*"],
+    # 允许跨域请求的 HTTP 请求头列表，默认是 []，可以使用 ["*"] 表示允许所有的请求头
+    # 当然 Accept、Accept-Language、Content-Language 以及 Content-Type 总之被允许的
+    allow_headers=["*"],
+    # 可以被浏览器访问的响应头, 默认是 []，一般很少指定
+    # expose_headers=["*"]
+    # 设定浏览器缓存 CORS 响应的最长时间，单位是秒。默认为 600，一般也很少指定
+    # max_age=1000
 )
 
 
@@ -72,6 +72,7 @@ class chiller_r_ret(BaseModel):
     B23: Union[float, None] = None
     MAPE: Union[float, None] = None
     RMSE: Union[float, None] = None
+
 
 class chilled_water_pump_ret(BaseModel):
     A0: Union[float, None] = None
@@ -194,18 +195,20 @@ class cooling_tower_union(BaseModel):
     cooling_amplitude_s: Union[List[cooling_tower_cooling_amplitude_ret], None] = None
 
 
-class air_cooled_heat_pump(BaseModel):
+class param_air_cooled_heat_pump(BaseModel):
     heat: Union[air_cooled_heat_pump_h_ret, None] = None
     refrigeration: Union[air_cooled_heat_pump_r_ret, None] = None
 
 
-class integrated_evaporative_chiller(BaseModel):
+class param_integrated_evaporative_chiller(BaseModel):
     heat: Union[integrated_evaporative_chiller_h_ret, None] = None
     refrigeration: Union[integrated_evaporative_chiller_r_ret, None] = None
+
 
 class param_chiller(BaseModel):
     min: Union[chiller_r_ret, None] = None
     max: Union[chiller_r_ret, None] = None
+
 
 class param_chilled_water_pump(BaseModel):
     min_first: Union[chilled_water_pump_ret, None] = None
@@ -213,15 +216,18 @@ class param_chilled_water_pump(BaseModel):
     max_first: Union[chilled_water_pump_ret, None] = None
     max_second: Union[chilled_water_pump_ret, None] = None
 
+
 class param_heat_water_pump(BaseModel):
     min_first: Union[chilled_water_pump_ret, None] = None
     min_second: Union[chilled_water_pump_ret, None] = None
     max_first: Union[chilled_water_pump_ret, None] = None
     max_second: Union[chilled_water_pump_ret, None] = None
 
+
 class param_cooling_water_pump(BaseModel):
     min: Union[cooling_water_pump_ret, None] = None
     max: Union[cooling_water_pump_ret, None] = None
+
 
 class param_cooling_tower(BaseModel):
     min: Union[cooling_tower_union, None] = None
@@ -234,8 +240,9 @@ class Params(BaseModel):
     chilled_water_pump: Union[param_heat_water_pump, None] = None
     cooling_water_pump: Union[param_cooling_water_pump, None] = None
     cooling_tower: Union[param_cooling_tower, None] = None
-    air_cooled_heat_pump: Union[air_cooled_heat_pump, None] = None
-    integrated_evaporative_chiller: Union[integrated_evaporative_chiller, None] = None
+    air_cooled_heat_pump: Union[param_air_cooled_heat_pump, None] = None
+    integrated_evaporative_chiller: Union[param_integrated_evaporative_chiller, None] = None
+
 
 class op_data(BaseModel):
     year: Union[int, None] = None
@@ -245,24 +252,76 @@ class op_data(BaseModel):
     q: Union[float, None] = None  # 负荷，kw
     ts: Union[float, None] = None  # 湿球温度
     t: Union[float, None] = None  # 干球温度
-    load_percentage: Union[float, None] = None  # 系统负荷百分比
+    load_percentage: Union[float, None] = None  # 单台主机负荷百分比
     system_load_percentage: Union[float, None] = None  # 系统负荷百分比
-    t1: Union[float, None] = None  # 冷冻水出水温度，℃
-    t2: Union[float, None] = None  # 冷冻水回水温度，℃
-    g2: Union[float, None] = None  # 冷冻水泵流量，m3/h
-    f2: Union[float, None] = None  # 冷冻水泵频率，Hz
-    t3: Union[float, None] = None  # 冷却水出水温度，℃
-    t4: Union[float, None] = None  # 冷却水回水温度，℃
-    g3: Union[float, None] = None  # 冷却水泵流量，m3/h
-    f3: Union[float, None] = None  # 冷却水泵频率，Hz
-    td: Union[float, None] = None  # 冷却塔冷幅
-    p1: Union[float, None] = None  # 主机功率，kw
-    p2: Union[float, None] = None  # 冷冻水泵功率，kw
-    p3: Union[float, None] = None  # 冷却水泵功率，kw
-    p4: Union[float, None] = None  # 冷却塔功率，kw
-    p: Union[float, None] = None  # 总功率，kw
+    first_cold_t1: Union[float, None] = None  # 一次泵冷冻水出水温度,℃
+    first_cold_t2: Union[float, None] = None  # 一次泵冷冻水回水温度,℃
+    min_first_cold_g2: Union[float, None] = None  # 一次泵小冷冻水泵流量,m3/h
+    min_first_cold_f2: Union[float, None] = None  # 一次泵小冷冻水泵频率,Hz
+    min_first_cold_n: Union[float, None] = None  # 一次泵小冷冻水泵运行台数
+    max_first_cold_g2: Union[float, None] = None  # 一次泵大冷冻水泵流量,m3/h
+    max_first_cold_f2: Union[float, None] = None  # 一次泵大冷冻水泵频率,Hz
+    max_first_cold_n: Union[float, None] = None  # 一次泵大冷冻水泵运行台数
+    second_cold_t1: Union[float, None] = None  # 二次泵冷冻水出水温度,℃
+    second_cold_t2: Union[float, None] = None  # 二次泵冷冻水回水温度,℃
+    min_second_cold_g2: Union[float, None] = None  # 二次泵小冷冻水泵流量,m3/h
+    min_second_cold_f2: Union[float, None] = None  # 二次泵小冷冻水泵频率,Hz
+    min_second_cold_n: Union[float, None] = None  # 二次泵小冷冻水泵运行台数
+    max_second_cold_g2: Union[float, None] = None  # 二次泵大冷冻水泵流量,m3/h
+    max_second_cold_f2: Union[float, None] = None  # 二次泵大冷冻水泵频率,Hz
+    max_second_cold_n: Union[float, None] = None  # 二次泵大冷冻水泵运行台数
+    first_heat_t1: Union[float, None] = None  # 一次泵热水出水温度,℃
+    first_heat_t2: Union[float, None] = None  # 一次泵热水回水温度,℃
+    min_first_heat_g2: Union[float, None] = None  # 一次泵小热水泵流量,m3/h
+    min_first_heat_f2: Union[float, None] = None  # 一次泵小热水泵频率,Hz
+    min_first_heat_n: Union[float, None] = None  # 一次泵小热水泵运行台数
+    max_first_heat_g2: Union[float, None] = None  # 一次泵大热水泵流量,m3/h
+    max_first_heat_f2: Union[float, None] = None  # 一次泵大热水泵频率,Hz
+    max_first_heat_n: Union[float, None] = None  # 一次泵大热水泵运行台数
+    second_heat_t1: Union[float, None] = None  # 二次泵热水出水温度,℃
+    second_heat_t2: Union[float, None] = None  # 二次泵热水回水温度,℃
+    min_second_heat_g2: Union[float, None] = None  # 二次泵小热水泵流量,m3/h
+    min_second_heat_f2: Union[float, None] = None  # 二次泵小热水泵频率,Hz
+    min_second_heat_n: Union[float, None] = None  # 二次泵小热水泵运行台数
+    max_second_heat_g2: Union[float, None] = None  # 二次泵大热水泵流量,m3/h
+    max_second_heat_f2: Union[float, None] = None  # 二次泵大热水泵频率,Hz
+    max_second_heat_n: Union[float, None] = None  # 二次泵大热水泵运行台数
+    cool_t3: Union[float, None] = None  # 冷却水出水温度,℃
+    cool_t4: Union[float, None] = None  # 冷却水回水温度,℃
+    min_g3: Union[float, None] = None  # 小冷却水泵流量,m3/h
+    min_f3: Union[float, None] = None  # 小冷却水泵频率,Hz
+    min_pump_n: Union[float, None] = None  # 小冷却水泵运行台数
+    max_g3: Union[float, None] = None  # 大冷却水泵流量,m3/h
+    max_f3: Union[float, None] = None  # 大冷却水泵频率,Hz
+    max_pump_n: Union[float, None] = None  # 大冷却水泵运行台数
+    min_td: Union[float, None] = None  # 小冷却塔冷幅
+    max_td: Union[float, None] = None  # 大冷却塔冷幅
+    min_tower_n: Union[float, None] = None  # 小冷却塔运行台数
+    max_tower_n: Union[float, None] = None  # 大冷却塔运行台数
+    min_chiller_n: Union[float, None] = None  # 小冷水机组开启台数
+    max_chiller_n: Union[float, None] = None  # 大冷水机组开启台数
+    air_cooled_heat_pump_n: Union[float, None] = None  # 风冷热泵机组开启台数
+    integrated_evaporative_chiller_n: Union[float, None] = None  # 蒸发冷一体机组开启台数
+    min_chilled_p1: Union[float, None] = None  # 小制冷主机功率,kw
+    max_chilled_p1: Union[float, None] = None  # 大制冷主机功率,kw
+    min_air_cooled_heat_pump_p1: Union[float, None] = None  # 小热泵主机功率,kw
+    max_air_cooled_heat_pump_p1: Union[float, None] = None  # 大热泵主机功率,kw
+    min_integrated_evaporative_chiller_p1: Union[float, None] = None  # 小蒸发冷主机功率,kw
+    max_integrated_evaporative_chiller_p1: Union[float, None] = None  # 大蒸发冷主机功率,kw
+    min_first_cold_pump_p2: Union[float, None] = None  # 一次泵小冷冻水泵功率,kw
+    max_first_cold_pump_p2: Union[float, None] = None  # 一次泵大冷冻水泵功率,kw
+    min_first_heat_pump_p2: Union[float, None] = None  # 一次泵小热水泵功率,kw
+    max_first_heat_pump_p2: Union[float, None] = None  # 一次泵大热水泵功率,kw
+    min_second_cold_pump_p2: Union[float, None] = None  # 二次泵小冷冻水泵功率,kw
+    max_second_cold_pump_p2: Union[float, None] = None  # 二次泵大冷冻水泵功率,kw
+    min_second_heat_pump_p2: Union[float, None] = None  # 二次泵小热水泵功率,kw
+    max_second_heat_pump_p2: Union[float, None] = None  # 二次泵大热水泵功率,kw
+    min_cool_pump_p3: Union[float, None] = None  # 小冷却水泵功率,kw
+    max_cool_pump_p3: Union[float, None] = None  # 大冷却水泵功率,kw
+    min_tower_p4: Union[float, None] = None  # 小冷却塔功率,kw
+    max_tower_p4: Union[float, None] = None  # 大冷却塔功率,kw
+    p: Union[float, None] = None  # 总功率,kw
     cop: Union[float, None] = None  # 系统COP, kw
-    n: Union[int, None] = None  # 设备开启台数
 
 
 class optimal_calculation_req(BaseModel):
@@ -421,7 +480,13 @@ def fit_integrated_evaporative_chiller_h(datas: List[P6Fitting]):
 
 @app.post("/optimal_calculation")
 def optimal_calculation(req: optimal_calculation_req):
-    return optimize(req)
+    print("=========")
+    print(req.json())
+    print("=========")
+    result = optimize(req)
+    print(result.json())
+    return result
+
 
 @app.post("/optimal_calculation_test")
 def optimal_calculation(req: cooling_tower_union):
@@ -437,13 +502,14 @@ INVALID_DEVICE = "INVALID_DEVICE"
 
 # 冷源 0(冷水机组+冷却塔)，1(冷水机组+冷却塔(免费)) ，2（一体式蒸发冷水机组（单冷，冷暖))，3(四管制风冷热泵)，4（热泵（单冷，冷暖））
 def getColdSource(code):
-    if code == 0:
+    # 冷源chiller(冷水机组),integrated_evaporative_chiller（蒸发冷一体机),air_cooled_heat_pump（空气源热泵）
+    if code == "chiller":
         return DEVICE_CCT
     elif code == 1:
         return DEVICE_CCTF
-    elif code == 2:
+    elif code == "integrated_evaporative_chiller":
         return DEVICE_IEC
-    elif code == 3:
+    elif code == "integrated_evaporative_chiller":
         return DEVICE_ACHP
     else:
         return INVALID_DEVICE
@@ -451,9 +517,10 @@ def getColdSource(code):
 
 # 热源  0（锅炉），2（一体式蒸发冷水机组），3（四管制风冷热泵），4（热泵）
 def getHeatSource(code):
-    if code == 2:
+    # boiler（锅炉）,integrated_evaporative_chiller（蒸发冷一体机),	air_cooled_heat_pump（空气源热泵）
+    if code == "integrated_evaporative_chiller":
         return DEVICE_IEC
-    elif code == 3:
+    elif code == "air_cooled_heat_pump":
         return DEVICE_ACHP
     else:
         return INVALID_DEVICE
@@ -462,7 +529,7 @@ def getHeatSource(code):
 def optimize(req: optimal_calculation_req):
     ret = optimal_calculation_ret()
     datas = optimizeT(getColdSource(req.init.basic.cold_source), getColdSource(req.init.basic.heat_source), req.init,
-                     req.params, req.datas)
+                      req.params, req.datas)
     ret.datas = datas
     ret.count = len(datas)
     return ret
@@ -511,22 +578,26 @@ def optimizeT(codeSource: str, heatSource: str, init: Init, params: Params, data
 
         datas[index].load_percentage = res[0]
         datas[index].system_load_percentage = res[1]
-        datas[index].t1 = res[2]
-        datas[index].t2 = res[3]
-        datas[index].g2 = res[4]
-        datas[index].f2 = res[5]
+        datas[index].first_cold_t1 = res[2]
+        datas[index].first_cold_t2 = res[3]
+        datas[index].min_first_cold_g2 = res[4]
+        datas[index].min_first_cold_f2 = res[5]
 
-        datas[index].t3 = res[6]
-        datas[index].t4 = res[7]
-        datas[index].g3 = res[8]
-        datas[index].f3 = res[9]
+        datas[index].cool_t3 = res[6]
+        datas[index].cool_t4 = res[7]
+        datas[index].min_g3 = res[8]
+        datas[index].min_f3 = res[9]
 
-        datas[index].td = res[10]
-        datas[index].p1 = res[11]
-        datas[index].p2 = res[12]
-        datas[index].p3 = res[13]
-        datas[index].p4 = res[14]
+        datas[index].min_td = res[10]
+        datas[index].min_chilled_p1 = res[11]
+        datas[index].min_first_cold_pump_p2 = res[12]
+        datas[index].min_cool_pump_p3 = res[13]
+        datas[index].min_tower_p4 = res[14]
         datas[index].p = res[15]
         datas[index].cop = res[16]
-        datas[index].n = res[17]
+
+        datas[index].min_chiller_n = res[17]
+        datas[index].min_first_cold_n = res[17]
+        datas[index].min_pump_n = res[17]
+        datas[index].min_tower_n = res[18]
     return datas

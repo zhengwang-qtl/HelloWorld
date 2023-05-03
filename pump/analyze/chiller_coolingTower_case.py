@@ -117,12 +117,13 @@ class CCTcase(ea.Problem):
 
         self.yuzhi = Init.basic.optimize_calculation_set_value
         self.G20 = Init.chilled_water_pump.min_first.g20  # G2额定功率
-        self.u1 = Init.chilled_water_pump.min_first.u  # G2限定值
+        self.u1 = Init.chilled_water_pump.min_first.u/50  # G2限定值 u频率 50hz 公频
         self.P20 = Init.chilled_water_pump.min_first.p20
         self.G30 = Init.cooling_water_pump.min.g30  # G3额定功率
-        self.u2 = Init.cooling_water_pump.min.u  # G3限定值
+        self.u2 = Init.cooling_water_pump.min.u/50  # G3限定值 u频率 50hz 公频
         self.t3_min = Init.chiller.min.t3_min
-        self.t2_tuple = (Init.basic.first_chilled_water_t_range[0], Init.basic.first_chilled_water_t_range[1])  # t2与t1差值的范围
+        self.t2_tuple = (
+        Init.basic.first_chilled_water_t_range[0], Init.basic.first_chilled_water_t_range[1])  # t2与t1差值的范围
         self.t4_tuple = (Init.basic.cooling_water_t_range[0], Init.basic.cooling_water_t_range[1])  # t4与t3差值的范围
         self.P0 = Init.cooling_tower.min.p0  # 一定条件下P4=P0
         self.Q = float(Q)  # 负荷Q
@@ -133,8 +134,8 @@ class CCTcase(ea.Problem):
         self.lengque_maxn = Init.cooling_tower.min.max_n  # 冷却塔的最大台数
         t1_range = []
         load_rate = []
-        for item in Init.chiller.min.load_rate_with_t_c:
-            t1_range.append(item.out_t)
+        for item in Init.chiller.load_rate_with_t_c:
+            t1_range.append(item.cold_out_first_t)
             load_rate.append(item.load_rate)
         self.T1_range = t1_range
         self.load_rat = load_rate
@@ -192,6 +193,21 @@ class CCTcase(ea.Problem):
                 self.selectType = 5
             elif temp == 4 / 3:
                 self.selectType = 6
+        else:
+            if self.selectType <= 4:
+                self.z = self.n * self.selectType
+            elif self.selectType == 5:
+                self.z = self.n * 1.5
+            else:
+                self.z = self.n * 4 / 3
+            while self.z > self.lengque_maxn and self.selectType != 1:
+                if self.selectType <= 4:
+                    self.selectType -= 1
+                    self.z = self.n * self.selectType
+                else:
+                    self.selectType = 1
+                    self.z = self.n
+
         D3 = 0
         if len(self.typeToD[self.selectType]) == 3:
             D0, D1, D2 = self.typeToD[self.selectType]
@@ -211,8 +227,8 @@ class CCTcase(ea.Problem):
                 D0, D1, D2 = self.typeToD[self.selectType]
                 self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS
 
-        # 计算z
-        self.z = self.n
+        if self.T3 < self.t3_min:
+            self.T3 = self.t3_min
         """
         self.z = None
         for i in range(int(self.max_n)):
@@ -222,13 +238,13 @@ class CCTcase(ea.Problem):
         if self.z is None:
             self.z = int(self.max_n)
         """
-
+        # 计算z
         if self.selectType <= 4:
-            self.z = self.z * self.selectType
+            self.z = self.n * self.selectType
         elif self.selectType == 5:
-            self.z = self.z * 1.5
+            self.z = self.n * 1.5
         else:
-            self.z = self.z * 4 / 3
+            self.z = self.n * 4 / 3
 
         name = 'MyProblem'  # 初始化name（函数名称，可以随意设置）
         M = 1  # 初始化M（目标维数）
