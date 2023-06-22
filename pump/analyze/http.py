@@ -494,7 +494,6 @@ def optimal_calculation(req: cooling_tower_union):
 
 
 DEVICE_CCT = "CCT"
-DEVICE_CCTF = "CCTF"
 DEVICE_ACHP = "ACHP"
 DEVICE_IEC = "IEC"
 INVALID_DEVICE = "INVALID_DEVICE"
@@ -505,8 +504,6 @@ def getColdSource(code):
     # 冷源chiller(冷水机组),integrated_evaporative_chiller（蒸发冷一体机),air_cooled_heat_pump（空气源热泵）
     if code == "chiller":
         return DEVICE_CCT
-    elif code == 1:
-        return DEVICE_CCTF
     elif code == "integrated_evaporative_chiller":
         return DEVICE_IEC
     elif code == "integrated_evaporative_chiller":
@@ -536,10 +533,11 @@ def optimize(req: optimal_calculation_req):
 
 
 def optimizeT(codeSource: str, heatSource: str, init: Init, params: Params, datas: List[op_data]):
-    tempQ = datas[0].q * 2
-    tempG2 = None
-    tempG3 = None
-    tempP1 = None
+    tempQ = 0
+    tempG2 = 0
+    tempG3 = 0
+    tempP1 = 0
+    free = False
 
     for index, i in enumerate(datas):
         Q = i.q
@@ -548,33 +546,57 @@ def optimizeT(codeSource: str, heatSource: str, init: Init, params: Params, data
             break
         if Q > 0:  # 制冷
             if codeSource == DEVICE_CCT:
-                case = CCTcase(Q, TS, init, params)
-                optimizer = CCToptimizer(case)
-            elif codeSource == DEVICE_CCTF:
-                case = CCTFcase(Q, TS, init, params)
-                optimizer = CCTFoptimizer(case)
+                if init.cooling_tower_free_calculation.cooling_tower_free == "cooling_tower_free_y":
+                    case = CCTFcase(Q, TS, init, params)
+                    if case.shouldOp is True:  # 优化计算
+                        case = CCTcase(Q, TS, init, params)
+                        optimizer = CCToptimizer(case)
+                        res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
+                        free = False
+                    else:  # 免费冷源
+                        optimizer = CCTFoptimizer(case)
+                        res = optimizer.run()
+                        free = True
+                else:
+                    case = CCTcase(Q, TS, init, params)
+                    optimizer = CCToptimizer(case)
+                    res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
+                    free = False
             elif codeSource == DEVICE_ACHP:
                 case = ACHPRcase(Q, TS, init, params)
                 optimizer = ACHPRoptimizer(case)
+                res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
             elif codeSource == DEVICE_IEC:
                 case = IECRcase(Q, TS, init, params)
                 optimizer = IECRoptimizer(case)
+                res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
             else:
                 raise HTTPException(status_code=401, detail="Invalid cold source!")
         else:  # 制热
             if codeSource == DEVICE_ACHP:
                 case = ACHPHcase(Q, TS, init, params)
                 optimizer = ACHPHoptimizer(case)
+                res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
             elif codeSource == DEVICE_IEC:
                 case = IECHcase(Q, TS, init, params)
                 optimizer = IECHoptimizer(case)
+                res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
             else:
                 raise HTTPException(status_code=401, detail="Invalid heat source!")
-        res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
-        tempQ = Q
-        tempG2 = res[4]
-        tempG3 = res[8]
-        tempP1 = res[11]
+
+        # 增加判断，然后直接复制 & 重新计算
+        if res[19] is True:
+            print("HAS OP:", Q)
+            tempQ = Q
+            tempG2 = res[4]
+            tempG3 = res[8]
+            tempP1 = res[11] / res[17]  # 单台P1
+        else:
+            if free is True:
+                tempG2 = 0  # 置为0，使得下一次优化计算必定重新优化计算
+                print("FREE: ", Q)
+            else:
+                print("NO OP:", Q)
 
         datas[index].load_percentage = res[0]
         datas[index].system_load_percentage = res[1]
@@ -595,8 +617,10 @@ def optimizeT(codeSource: str, heatSource: str, init: Init, params: Params, data
         datas[index].min_tower_p4 = res[14]
         datas[index].p = res[15]
         datas[index].cop = res[16]
-
-        datas[index].min_chiller_n = res[17]
+        if free is True:
+            datas[index].min_chiller_n = 0
+        else:
+            datas[index].min_chiller_n = res[17]
         datas[index].min_first_cold_n = res[17]
         datas[index].min_pump_n = res[17]
         datas[index].min_tower_n = res[18]

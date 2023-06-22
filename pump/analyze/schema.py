@@ -37,7 +37,7 @@ class Load_rate_with_t_c(BaseModel):
 
 class Init_chiller_model(BaseModel): #冷水机组
     q: Union[float,None]=None # 单台额定冷水机组额定负荷Qs，KW
-    n: Union[int,None]=None,  # 冷水机组台数，台
+    n: Union[int,None]=None  # 冷水机组台数，台
     efficiency_range: Union[float,None]=None # 单台高效率冷负荷范围η，%
     t3_min: Union[float,None]=None  # 冷却塔出水（机组允许）最低温度T3
     q_min: Union[float,None]=None # 单台冷水机组最低负荷Qq，Kw
@@ -83,18 +83,22 @@ class Init_cooling_tower_model(BaseModel): #冷却塔
     g0: Union[float,None]=None  # 单台冷却塔的额定流量G，m3/h
     w0: Union[float,None]=None # 单台冷却塔的风量W，m3/h
     calcType: Union[str,None]=None #冷却塔计算类型  1to1 - 1对1 2to1 - 2对1 ... 4to3 - 4对3
+    cooling_tower_var: Union[str,None]=None # 是否变频 yes-是 no-否
 
 class Init_cooling_tower(BaseModel):
     min: Union[Init_cooling_tower_model,None]=None
     max: Union[Init_cooling_tower_model,None]=None
 
 class Init_cooling_tower_free_calculation(BaseModel):  #冷却塔免费冷源
+    cooling_tower_free: Union[str,None]=None #是否开启免费冷源，是yes,否no
     ts: Union[float,None]=None   # 室外湿球温度
     bh_td: Union[float,None]=None   # 板换温差
     bh_efficiency: Union[float,None]=None   # 板换效率
     min_load: Union[float,None]=None   # 最低负荷
     ct_td: Union[float,None]=None   # 冷却塔温差
     w_td: Union[float,None]=None  # 供回水温差
+    ct_lqc_hswd: Union[float,None]=None # 冷却塔冷却侧回水温度 (T4)
+    ct_gsc_hswd: Union[float,None]=None  # 冷却塔供水侧回水温度 (T2)
     unite_ts: Union[float,None]=None #主机与冷却塔联合供冷室外湿球温度
 
 class Init_air_cooled_heat_pump(BaseModel): #风冷热泵

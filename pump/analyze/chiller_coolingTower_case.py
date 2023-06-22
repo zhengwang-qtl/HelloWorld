@@ -10,6 +10,7 @@ from analyze.schema import *
 
 class CCTcase(ea.Problem):
     def __init__(self, Q, TS, Init: Init, Params):
+        print("=========================")
         arr_A = []
         arr_A.append(Params.chilled_water_pump.min_first.A0)
         arr_A.append(Params.chilled_water_pump.min_first.A1)
@@ -99,7 +100,12 @@ class CCTcase(ea.Problem):
 
         self.E = arr_E
 
+        self.cooling_tower_var = False
+        if Init.cooling_tower.min.cooling_tower_var == "yes":
+            self.cooling_tower_var = True
+
         calcType = Init.cooling_tower.min.calcType
+        self.autoCalc = False
         if calcType == "1to1":
             self.selectType = 1
         elif calcType == "2to1":
@@ -114,16 +120,17 @@ class CCTcase(ea.Problem):
             self.selectType = 6
         else:
             self.selectType = 0
+            self.autoCalc = True
 
         self.yuzhi = Init.basic.optimize_calculation_set_value
         self.G20 = Init.chilled_water_pump.min_first.g20  # G2额定功率
-        self.u1 = Init.chilled_water_pump.min_first.u/50  # G2限定值 u频率 50hz 公频
+        self.u1 = Init.chilled_water_pump.min_first.u / 50  # G2限定值 u频率 50hz 公频
         self.P20 = Init.chilled_water_pump.min_first.p20
         self.G30 = Init.cooling_water_pump.min.g30  # G3额定功率
-        self.u2 = Init.cooling_water_pump.min.u/50  # G3限定值 u频率 50hz 公频
+        self.u2 = Init.cooling_water_pump.min.u / 50  # G3限定值 u频率 50hz 公频
         self.t3_min = Init.chiller.min.t3_min
         self.t2_tuple = (
-        Init.basic.first_chilled_water_t_range[0], Init.basic.first_chilled_water_t_range[1])  # t2与t1差值的范围
+            Init.basic.first_chilled_water_t_range[0], Init.basic.first_chilled_water_t_range[1])  # t2与t1差值的范围
         self.t4_tuple = (Init.basic.cooling_water_t_range[0], Init.basic.cooling_water_t_range[1])  # t4与t3差值的范围
         self.P0 = Init.cooling_tower.min.p0  # 一定条件下P4=P0
         self.Q = float(Q)  # 负荷Q
@@ -181,18 +188,18 @@ class CCTcase(ea.Problem):
         # 计算T3
         if self.selectType == 0:
             temp = self.lengque_maxn / self.n
-            if temp == 1:
-                self.selectType = 1
-            elif temp == 2:
-                self.selectType = 2
-            elif temp == 3:
-                self.selectType = 3
-            elif temp == 4:
+            if temp >= 4:
                 self.selectType = 4
-            elif temp == 3 / 2:
+            elif temp >= 3:
+                self.selectType = 3
+            elif temp >= 2:
+                self.selectType = 2
+            elif temp >= 3 / 2:
                 self.selectType = 5
-            elif temp == 4 / 3:
+            elif temp >= 4 / 3:
                 self.selectType = 6
+            else:
+                self.selectType = 1
         else:
             if self.selectType <= 4:
                 self.z = self.n * self.selectType
@@ -208,19 +215,52 @@ class CCTcase(ea.Problem):
                     self.selectType = 1
                     self.z = self.n
 
-        D3 = 0
-        if len(self.typeToD[self.selectType]) == 3:
-            D0, D1, D2 = self.typeToD[self.selectType]
+        #        self.D3 = 0
+        #        if len(self.typeToD[self.selectType]) == 3:
+        #            self.D0, self.D1, self.D2 = self.typeToD[self.selectType]
+        #        else:
+        #            self.D0, self.D1, self.D2, self.D3 = self.typeToD[self.selectType]
+
+        # TODO 思考D3是否会带来问题呢？
+        self.getT3()
+
+        name = 'MyProblem'  # 初始化name（函数名称，可以随意设置）
+        M = 1  # 初始化M（目标维数）
+        maxormins = [1]  # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标）
+
+        if self.t2_tuple[0] == self.t2_tuple[1]:
+            self.T2_MIN = self.t2_tuple[0] + self.T1
+            self.T2_MAX = self.t2_tuple[1] + self.T1
         else:
+            self.T2_MIN = self.T1 + 6 * self.Q / (7 * self.G20)
+            self.T2_MAX = self.T1 + 6 * self.Q / (7 * self.G20 * self.u1)
+
+        T4_MIN = self.t4_tuple[0] + self.T3
+        T4_MAX = self.t4_tuple[1] + self.T3
+
+        Dim = 2  # 初始化Dim（决策变量维数） T2 和 T4
+        varTypes = [0] * Dim  # 初始化varTypes（决策变量的类型，元素为0表示对应的变量是连续的；1表示是离散的）
+        lb = [self.T2_MIN, T4_MIN]  # 决策变量下界
+        ub = [self.T2_MAX, T4_MAX]  # 决策变量上界
+        lbin = [1, 1]  # 决策变量下边界
+        ubin = [1, 1]  # 决策变量上边界
+        # 调用父类构造方法完成实例化
+        ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
+
+    ### 计算T3
+    def getT3(self):
+        if self.selectType == 4:
             D0, D1, D2, D3 = self.typeToD[self.selectType]
-
-        self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS + D3 * self.TS * self.TS * self.TS
-
+            self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS + D3 * self.TS * self.TS * self.TS
+        else:
+            D0, D1, D2 = self.typeToD[self.selectType]
+            self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS
+        print("Q:", self.Q * self.n, self.selectType)
         while self.T3 < self.t3_min and self.selectType != 1:
             if self.selectType <= 4:  # 刚好等于4的情况下(4to1)，此时降为3（3to1），此时参数D就为3个
                 self.selectType -= 1
                 D0, D1, D2 = self.typeToD[self.selectType]
-                self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS + D3 * self.TS * self.TS * self.TS
+                self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS
             else:
                 # type=5,6 参数D一定为3个
                 self.selectType = 1
@@ -245,25 +285,6 @@ class CCTcase(ea.Problem):
             self.z = self.n * 1.5
         else:
             self.z = self.n * 4 / 3
-
-        name = 'MyProblem'  # 初始化name（函数名称，可以随意设置）
-        M = 1  # 初始化M（目标维数）
-        maxormins = [1]  # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标）
-
-        T2_MIN = self.t2_tuple[0] + self.T1
-        T2_MAX = self.t2_tuple[1] + self.T1
-
-        T4_MIN = self.t4_tuple[0] + self.T3
-        T4_MAX = self.t4_tuple[1] + self.T3
-
-        Dim = 2  # 初始化Dim（决策变量维数） T2 和 T4
-        varTypes = [0] * Dim  # 初始化varTypes（决策变量的类型，元素为0表示对应的变量是连续的；1表示是离散的）
-        lb = [T2_MIN, T4_MIN]  # 决策变量下界
-        ub = [T2_MAX, T4_MAX]  # 决策变量上界
-        lbin = [1, 1]  # 决策变量下边界
-        ubin = [1, 1]  # 决策变量上边界
-        # 调用父类构造方法完成实例化
-        ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
 
     def aimFunc(self, pop):  # 目标函数
         T2 = pop.Phen[:, [0]]  # 获取表现型矩阵的第一列，得到所有个体的x1的值

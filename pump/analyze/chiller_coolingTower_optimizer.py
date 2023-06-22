@@ -30,81 +30,149 @@ class CCToptimizer():
     P1（主机功率）, P2（冷冻水泵功率）, P3（冷却水泵功率）, P4（冷却塔功率）, total_P（总功率）,total_cop（系统COP）, 
     open_num（设备开启台数）
     """
-    def run(self, tempQ=-1,tempG2=-1,tempG3=-1,tempP1=-1):
+
+    def run(self, tempQ=-1, tempG2=-1, tempG3=-1, tempP1=-1):
+        hasOp = False
         if self.problem.ifopt is False:
-            G2 = self.problem.P20 * self.problem.u1
-            P2 = self.A[0]+ self.A[1] * G2 + self.A[2] * G2 * G2
-            P = P2
-            COP = self.problem.Q/P
-            T2 = self.problem.T1 + 6 * self.problem.Q / (7 * G2)
-            return (0, 0, round(self.problem.T1, 3), round(T2, 3), round(G2, 3), round(50 * G2 / self.problem.G20, 3), 0, 0, 0, 0, 0, round(P2, 3), 0, 0, round(P, 3), round(COP, 3), 0)
+            return (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, hasOp)
+        #        A0, A1, A2 = self.problem.A
+        #        G2 = self.problem.P20 * self.problem.u1
+        #        P2 = A0 + A1 * G2 + A2 * G2 * G2
+        #        P = P2
+        #        COP = self.problem.Q / P
+        #        T2 = self.problem.T1 + 6 * self.problem.Q / (7 * G2)
+        #        return (
+        #            0, 0, round(self.problem.T1, 3), round(T2, 3), round(G2, 3), round(50 * G2 / self.problem.G20, 3), 0, 0,
+        #           0,
+        #            0, 0, round(P2, 3), 0, 0, round(P, 3), round(COP, 3), 0, 0, hasOp)
         else:
             Q = self.problem.Q
             T1 = self.problem.T1
             T3 = self.problem.T3
-
-            if abs(self.problem.Q*self.problem.n - tempQ) * 100 / tempQ < float(self.problem.yuzhi):
+            z = self.problem.z
+            # tempG2=0 上一轮有优化出计算结果
+            if tempG2 != 0 and abs(self.problem.Q * self.problem.n - tempQ) * 100 / tempQ < float(self.problem.yuzhi):
                 G2 = tempG2
                 G3 = tempG3
-                T2=T1+6*Q/(G2*7)
+                T2 = T1 + 6 * Q / (G2 * 7)
                 T4 = T3 + 6 * (Q + tempP1) / (G3 * 7)
+                P1 = tempP1
             else:
-                [BestIndi, population] = self.myAlgorithm.run()  # 执行算法模板，得到最优个体以及最后一代种群
-                T2 = BestIndi.Phen[0, 0]
-                T4 = BestIndi.Phen[0, 1]
+                #                [BestIndi, population] = self.myAlgorithm.run()  # 执行算法模板，得到最优个体以及最后一代种群
+                #                T2 = BestIndi.Phen[0, 0]
+                #                T4 = BestIndi.Phen[0, 1]
+                hasOp = True
+                min_total_p = 0
+                min_t3 = 0
+                min_t1 = 0
+                min_t2 = 0
+                min_t4 = 0
+                min_p1 = 0
+                min_g2 = 0
+                min_g3 = 0
+                min_z = 1
+                while self.problem.selectType >= 1:
+                    T3 = self.problem.T3
+                    T1 = self.problem.T1
+                    T4_MIN = self.problem.t4_tuple[0] + T3
+                    T4_MAX = self.problem.t4_tuple[1] + T3
+                    T2_MIN = self.problem.T2_MIN
+                    T2_MAX = self.problem.T2_MAX
+                    T2 = T2_MIN
+                    while T2 >= T2_MIN and T2 <= T2_MAX:
+                        T4 = T4_MIN
+                        while T4 >= T4_MIN and T4 <= T4_MAX:
+                            P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
+                            G2 = 6 * Q / (7 * (T2 - T1))
+                            G3 = 6 * (Q + P1) / (7 * (T4 - T3))
+                            if P1 <= 0:
+                                #    print("invalid", self.problem.Q * self.problem.n, T1, T2, T3, T4, self.problem.n * P1)
+                                T4 = T4 + 0.1
+                                continue
+                            # if G2 > self.problem.G20 or G3 < self.problem.G20 * self.problem.u1:
+                            #    print("invalid", self.problem.Q * self.problem.n, T1, T2, T3, T4, self.problem.n * P1, G2,
+                            #          G3)
+                            #    T4 = T4 + 0.1
+                            #    continue
+                            if G3 > self.problem.G30 and G3 < 1.05 * self.problem.G30:
+                                print("adjust!!!")
+                                G3 = self.problem.G30
+                            if G3 < self.problem.G30 * self.problem.u2 and G3 > self.problem.G30 * self.problem.u2 * 0.95:
+                                print("adjust!!!")
+                                G3 = self.problem.G30 * self.problem.u2
+                            if G3 > self.problem.G30 or G3 < self.problem.G30 * self.problem.u2:
+                                #    print("invalid", self.problem.Q * self.problem.n, T1, T2, T3, T4, self.problem.n * P1, G2,
+                                #          G3)
+                                T4 = T4 + 0.1
+                                continue
+                            A0, A1, A2 = self.problem.A
+                            P2 = A0 + A1 * G2 + A2 * G2 * G2
 
-                P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
-                G2 = 6 * Q / (7 * (T2 - T1))
-                G3 = 6 * (Q + P1) / (7 * (T4 - T3))
+                            C0, C1, C2 = self.problem.C
+                            P3 = C0 + C1 * G3 + C2 * G3 * G3
 
-            G20 = self.problem.G20
-            u1 = self.problem.u1
-            if G2 < G20 * u1:
-                T2 = T1 + 6 * Q / (7 * G20 * u1)
-            if G2 > G20:
-                T2 = T1 + 6 * Q / (7 * G20)
+                            E0, E1, E2, E3 = self.problem.E
+                            P4 = E0 + E1 * G3 + E2 * G3 * G3 + E3 * G3 * G3 * G3
+                            if T3 > self.problem.t3_min and self.problem.cooling_tower_var is False:
+                                P4 = self.problem.P0
+                            total_P = self.problem.n * (P1 + P2 + P3) + self.problem.z * P4
+                            #    print("valid", self.problem.Q * self.problem.n, T1, T2, T3, T4, self.problem.n * P1, G2, G3,
+                            #          self.problem.n * P2, self.problem.n * P3, self.problem.n * P4, total_P)
+                            if total_P < min_total_p or min_total_p == 0:
+                                min_total_p = total_P
+                                print("Q:", self.problem.Q * self.problem.n, self.problem.selectType, "P:", total_P)
+                                min_p1 = P1
+                                min_g2 = G2
+                                min_g3 = G3
+                                min_t2 = T2
+                                min_t4 = T4
+                                min_t3 = T3
+                                min_t1 = T1
+                                min_z = self.problem.z
 
-            G30 = self.problem.G30
-            u2 = self.problem.u2
-            if G3 < G30 * u2 :
-                P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
-                T4 = T3 + 6 * (Q + P1) / (7 * G30 * u2)
-            if G3 > G30:
-                P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
-                T4 = T3 + 6 * (Q + P1) / (7 * G30)
+                            T4 = T4 + 0.1
+                        T2 = T2 + 0.1
+                    if self.problem.autoCalc is False:
+                        break
+                    if self.problem.selectType <= 4:
+                        self.problem.selectType -= 1
+                    else:
+                        self.problem.selectType = 1
+                    if self.problem.selectType > 0:
+                        self.problem.getT3()
+                if min_total_p == 0:  # 需要剥离出来
+                    hasOp = False
+                    print("No results that meet the criteria！")
+                    return (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, hasOp)
+                T2 = min_t2
+                T4 = min_t4
+                G2 = min_g2
+                G3 = min_g3
+                P1 = min_p1
+                T1 = min_t1
+                T3 = min_t3
+                z = min_z
 
-            if T2 - T1 < self.problem.t2_tuple[0]:
-                T2 = T1 + self.problem.t2_tuple[0]
-            if T2 - T1 > self.problem.t2_tuple[1]:
-                T2 = T1 + self.problem.t2_tuple[1]
+            #            G30 = self.problem.G30
+            #            u2 = self.problem.u2
+            #            if G3 < G30 * u2 or G3 > G30:
+            #                P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
+            #                TD_MIN = round(6 * (Q + P1) / (7 * G30), 4) + 0.0001
+            #                TD_MAX = round(6 * (Q + P1) / (7 * G30 * u2), 4) - 0.0001
+            #                print(P1)
+            #                return (0, TD_MIN, TD_MAX)
 
-            if T4 - T3 < self.problem.t4_tuple[0]:
-                T4 = T3 + self.problem.t4_tuple[0]
-            if T4 - T3 > self.problem.t4_tuple[1]:
-                T4 = T3 + self.problem.t4_tuple[0]
-            P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
             A0, A1, A2 = self.problem.A
-
-            G2 = 6 * Q / (7 * (T2 - T1))
-            G20 = self.problem.G20
-            u1 = self.problem.u1
-            G2 = max(G2, G20 * u1)
-            G2 = min(G2, G20)
             P2 = A0 + A1 * G2 + A2 * G2 * G2
 
             C0, C1, C2 = self.problem.C
-            G3 = 6 * (Q + P1) / (7 * (T4 - T3))
-            G30 = self.problem.G30
-            u2 = self.problem.u2
-            G3 = max(G3, G30 * u2)
-            G3 = min(G3, G30)
             P3 = C0 + C1 * G3 + C2 * G3 * G3
 
             E0, E1, E2, E3 = self.problem.E
             P4 = E0 + E1 * G3 + E2 * G3 * G3 + E3 * G3 * G3 * G3
-            if T3 >= self.problem.t3_min:
+            if T3 > self.problem.t3_min and self.problem.cooling_tower_var is False:
                 P4 = self.problem.P0
-            total_P = self.problem.n * (P1 + P2 + P3) + self.problem.z * P4
+            total_P = self.problem.n * (P1 + P2 + P3) + z * P4
 
             loading_ration = Q / self.problem.QS * 100
             system_loading_ration = (Q * self.problem.n * 100) / (self.problem.QS * self.problem.max_n)
@@ -115,11 +183,12 @@ class CCToptimizer():
             P1 = self.problem.n * P1
             P2 = self.problem.n * P2
             P3 = self.problem.n * P3
-            P4 = self.problem.z * P4
-            return (round(loading_ration, 2), round(system_loading_ration, 2), round(T1, 3), round(T2, 3), round(G2, 3),
-                    round(50 * G2 / G20, 3), round(T3, 3), round(T4, 3), round(G3, 3), round(50 * G3 / G30),
-                    round(cold_flu, 3), round(P1, 4), round(P2, 3), round(P3, 3), round(P4, 3), round(total_P, 3),
-                    round(total_cop, 3), round(open_num, 3), round(self.problem.z, 3))
+            P4 = z * P4
+            return (round(loading_ration, 2), round(system_loading_ration, 2), round(T1, 2), round(T2, 2), round(G2, 2),
+                    round(50 * G2 / self.problem.G20, 2), round(T3, 2), round(T4, 2), round(G3, 2),
+                    round(50 * G3 / self.problem.G30, 2),
+                    round(cold_flu, 2), round(P1, 2), round(P2, 2), round(P3, 2), round(P4, 2), round(total_P, 2),
+                    round(total_cop, 2), round(open_num, 2), round(z, 2), hasOp)
 
     def func_P1(self, T, B):
         T1, T2, T3, T4, Q = T
