@@ -41,12 +41,10 @@ class CCTFoptimizer():
         E0, E1, E2, E3 = self.problem.E
         P4 = E0 + E1 * G3 + E2 * G3 * G3 + E3 * G3 * G3 * G3
 
-
         total_P2 = self.problem.n * P2
         total_P3 = self.problem.n * P3
         total_P4 = self.problem.z * P4
         total_P = total_P2 + total_P3 + total_P4
-        print("OUT: ", Q * self.problem.n, self.problem.n, self.problem.z, P4, total_P4)
         open_num = self.problem.n
         total_cop = Q / (total_P / self.problem.n)
         cold_flu = T3 - self.problem.TS

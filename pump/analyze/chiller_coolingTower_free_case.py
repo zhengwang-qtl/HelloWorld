@@ -113,7 +113,6 @@ class CCTFcase:
 
         G2 = 6 * Q / (7 * self.w_td)
         m = G2 / self.G20
-        print(Q, self.G20, G2, self.w_td, self.max_n)
         self.n = self.max_n  # 冷冻水泵开启台数
         for i in range(int(self.max_n + 1)):
             if i * self.u1 > m:
@@ -170,8 +169,6 @@ class CCTFcase:
             self.getT3()
             if self.ct_gsc_hswd - self.bh_td - self.w_td >= self.T3:
                 self.shouldOp = False
-        print("shouldOP:", self.shouldOp, self.ct_gsc_hswd, self.bh_td, self.w_td, self.T3)
-        print("ct num:", self.selectType, self.n, self.z)
 
     def getT3(self):
         if self.selectType == 4:

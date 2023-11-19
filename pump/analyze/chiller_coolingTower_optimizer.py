@@ -31,7 +31,7 @@ class CCToptimizer():
     open_num（设备开启台数）
     """
 
-    def run(self, tempQ=-1, tempG2=-1, tempG3=-1, tempP1=-1):
+    def run(self, isFixG=True, tempQ=-1, tempG2=-1, tempG3=-1, tempP1=-1, tempT1=0, tempT2=0, tempT3=0, tempT4=0):
         hasOp = False
         if self.problem.ifopt is False:
             return (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, hasOp)
@@ -52,11 +52,20 @@ class CCToptimizer():
             z = self.problem.z
             # tempG2=0 上一轮有优化出计算结果
             if tempG2 != 0 and abs(self.problem.Q * self.problem.n - tempQ) * 100 / tempQ < float(self.problem.yuzhi):
-                G2 = tempG2
-                G3 = tempG3
-                T2 = T1 + 6 * Q / (G2 * 7)
-                T4 = T3 + 6 * (Q + tempP1) / (G3 * 7)
-                P1 = tempP1
+                if isFixG is True:
+                    G2 = tempG2
+                    G3 = tempG3
+                    T2 = T1 + 6 * Q / (G2 * 7)
+                    T4 = T3 + 6 * (Q + tempP1) / (G3 * 7)
+                    P1 = tempP1
+                else:
+                    T2 = tempT2
+                    T1 = tempT1
+                    T3 = tempT3
+                    T4 = tempT4
+                    P1 = tempP1
+                    G2 = 6 * Q / (7 * (T2 - T1))
+                    G3 = 6 * (Q + P1) / (7 * (T4 - T3))
             else:
                 #                [BestIndi, population] = self.myAlgorithm.run()  # 执行算法模板，得到最优个体以及最后一代种群
                 #                T2 = BestIndi.Phen[0, 0]
@@ -85,6 +94,7 @@ class CCToptimizer():
                             P1 = self.func_P1((T1, T2, T3, T4, Q), self.problem.B)
                             G2 = 6 * Q / (7 * (T2 - T1))
                             G3 = 6 * (Q + P1) / (7 * (T4 - T3))
+                            print(self.problem.Q * self.problem.n, T1, T2, T3, T4, P1* self.problem.n, G2, G3)
                             if P1 <= 0:
                                 #    print("invalid", self.problem.Q * self.problem.n, T1, T2, T3, T4, self.problem.n * P1)
                                 T4 = T4 + 0.1
@@ -95,10 +105,8 @@ class CCToptimizer():
                             #    T4 = T4 + 0.1
                             #    continue
                             if G3 > self.problem.G30 and G3 < 1.05 * self.problem.G30:
-                                print("adjust!!!")
                                 G3 = self.problem.G30
                             if G3 < self.problem.G30 * self.problem.u2 and G3 > self.problem.G30 * self.problem.u2 * 0.95:
-                                print("adjust!!!")
                                 G3 = self.problem.G30 * self.problem.u2
                             if G3 > self.problem.G30 or G3 < self.problem.G30 * self.problem.u2:
                                 #    print("invalid", self.problem.Q * self.problem.n, T1, T2, T3, T4, self.problem.n * P1, G2,
@@ -116,11 +124,9 @@ class CCToptimizer():
                             if T3 > self.problem.t3_min and self.problem.cooling_tower_var is False:
                                 P4 = self.problem.P0
                             total_P = self.problem.n * (P1 + P2 + P3) + self.problem.z * P4
-                            #    print("valid", self.problem.Q * self.problem.n, T1, T2, T3, T4, self.problem.n * P1, G2, G3,
-                            #          self.problem.n * P2, self.problem.n * P3, self.problem.n * P4, total_P)
+                            print("valid", self.problem.Q * self.problem.n, T1, T2, T3, T4, self.problem.n * P1, G2, G3,self.problem.n * P2, self.problem.n * P3, self.problem.n * P4, total_P)
                             if total_P < min_total_p or min_total_p == 0:
                                 min_total_p = total_P
-                                print("Q:", self.problem.Q * self.problem.n, self.problem.selectType, "P:", total_P)
                                 min_p1 = P1
                                 min_g2 = G2
                                 min_g3 = G3
@@ -133,6 +139,8 @@ class CCToptimizer():
                             T4 = T4 + 0.1
                         T2 = T2 + 0.1
                     if self.problem.autoCalc is False:
+                        break
+                    if self.problem.isFixT3 is True:
                         break
                     if self.problem.selectType <= 4:
                         self.problem.selectType -= 1
@@ -168,6 +176,8 @@ class CCToptimizer():
             C0, C1, C2 = self.problem.C
             P3 = C0 + C1 * G3 + C2 * G3 * G3
 
+            if self.problem.isFixT3:
+                z = self.problem.n
             E0, E1, E2, E3 = self.problem.E
             P4 = E0 + E1 * G3 + E2 * G3 * G3 + E3 * G3 * G3 * G3
             if T3 > self.problem.t3_min and self.problem.cooling_tower_var is False:

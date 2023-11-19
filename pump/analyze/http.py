@@ -533,11 +533,23 @@ def optimize(req: optimal_calculation_req):
 
 
 def optimizeT(codeSource: str, heatSource: str, init: Init, params: Params, datas: List[op_data]):
+    isFixG = False
+    if init.basic.optimize_calculation_model == "optimize_calculation_model":
+        isFixG = True
+
     tempQ = 0
     tempG2 = 0
     tempG3 = 0
     tempP1 = 0
+    tempT1 = 0
+    tempT2 = 0
+    tempT3 = 0
+    tempT4 = 0
     free = False
+    cooling_tower_free_sum = 1
+    if init.cooling_tower_free_calculation.cooling_tower_free_sum is not None:
+        cooling_tower_free_sum = init.cooling_tower_free_calculation.cooling_tower_free_sum
+    count = 0
 
     for index, i in enumerate(datas):
         Q = i.q
@@ -548,19 +560,38 @@ def optimizeT(codeSource: str, heatSource: str, init: Init, params: Params, data
             if codeSource == DEVICE_CCT:
                 if init.cooling_tower_free_calculation.cooling_tower_free == "cooling_tower_free_y":
                     case = CCTFcase(Q, TS, init, params)
-                    if case.shouldOp is True:  # 优化计算
-                        case = CCTcase(Q, TS, init, params)
-                        optimizer = CCToptimizer(case)
-                        res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
-                        free = False
-                    else:  # 免费冷源
+                    free = False
+                    if case.shouldOp is False:  # 免费冷源
+                        count = count + 1
+                        if count >= cooling_tower_free_sum:
+                            free = True
+                        else:
+                            preCount = count
+                            for j in range(cooling_tower_free_sum - count):
+                                preIndex = index + j + 1
+                                if preIndex >= len(datas):
+                                    break
+                                preCase = CCTFcase(datas[preIndex].q, datas[preIndex].ts, init, params)
+                                if preCase.shouldOp is False:
+                                    preCount = preCount + 1
+                                    if preCount >= cooling_tower_free_sum:
+                                        free = True
+                                        break
+                                else:
+                                    break
+                    else:
+                        count = 0
+                    if free is True:  # 免费冷源
                         optimizer = CCTFoptimizer(case)
                         res = optimizer.run()
-                        free = True
+                    else:  # 优化计算
+                        case = CCTcase(Q, TS, init, params)
+                        optimizer = CCToptimizer(case)
+                        res = optimizer.run(isFixG, tempQ, tempG2, tempG3, tempP1, tempT1, tempT2, tempT3, tempT4)
                 else:
                     case = CCTcase(Q, TS, init, params)
                     optimizer = CCToptimizer(case)
-                    res = optimizer.run(tempQ, tempG2, tempG3, tempP1)
+                    res = optimizer.run(isFixG, tempQ, tempG2, tempG3, tempP1, tempT1, tempT2, tempT3, tempT4)
                     free = False
             elif codeSource == DEVICE_ACHP:
                 case = ACHPRcase(Q, TS, init, params)
@@ -591,6 +622,10 @@ def optimizeT(codeSource: str, heatSource: str, init: Init, params: Params, data
             tempG2 = res[4]
             tempG3 = res[8]
             tempP1 = res[11] / res[17]  # 单台P1
+            tempT1 = res[2]
+            tempT2 = res[3]
+            tempT3 = res[6]
+            tempT4 = res[7]
         else:
             if free is True:
                 tempG2 = 0  # 置为0，使得下一次优化计算必定重新优化计算

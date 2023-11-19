@@ -4,13 +4,12 @@ import geatpy as ea
 from analyze.schema import *
 
 """
-    
+
 """
 
 
 class CCTcase(ea.Problem):
     def __init__(self, Q, TS, Init: Init, Params):
-        print("=========================")
         arr_A = []
         arr_A.append(Params.chilled_water_pump.min_first.A0)
         arr_A.append(Params.chilled_water_pump.min_first.A1)
@@ -86,41 +85,13 @@ class CCTcase(ea.Problem):
         arr_E.append(Params.cooling_tower.min.power.E2)
         arr_E.append(Params.cooling_tower.min.power.E3)
 
+        self.isFixT3 = False
+        if Init.basic.cooling_tower_t3 == "cooling_tower_t3":
+            self.isFixT3 = True
+
         self.A = arr_A
         self.B = arr_B
         self.C = arr_C
-
-        self.D_1to1 = arr_D_1to1
-        self.D_2to1 = arr_D_2to1
-        self.D_3to1 = arr_D_3to1
-        self.D_4to1 = arr_D_4to1
-        self.D_3to2 = arr_D_3to2
-        self.D_4to3 = arr_D_4to3
-        self.typeToD = {1: self.D_1to1, 2: self.D_2to1, 3: self.D_3to1, 4: self.D_4to1, 5: self.D_3to2, 6: self.D_4to3}
-
-        self.E = arr_E
-
-        self.cooling_tower_var = False
-        if Init.cooling_tower.min.cooling_tower_var == "yes":
-            self.cooling_tower_var = True
-
-        calcType = Init.cooling_tower.min.calcType
-        self.autoCalc = False
-        if calcType == "1to1":
-            self.selectType = 1
-        elif calcType == "2to1":
-            self.selectType = 2
-        elif calcType == "3to1":
-            self.selectType = 3
-        elif calcType == "4to1":
-            self.selectType = 4
-        elif calcType == "3to2":
-            self.selectType = 5
-        elif calcType == "4to3":
-            self.selectType = 6
-        else:
-            self.selectType = 0
-            self.autoCalc = True
 
         self.yuzhi = Init.basic.optimize_calculation_set_value
         self.G20 = Init.chilled_water_pump.min_first.g20  # G2额定功率
@@ -141,10 +112,14 @@ class CCTcase(ea.Problem):
         self.lengque_maxn = Init.cooling_tower.min.max_n  # 冷却塔的最大台数
         t1_range = []
         load_rate = []
+        t3_range = []
         for item in Init.chiller.load_rate_with_t_c:
             t1_range.append(item.cold_out_first_t)
             load_rate.append(item.load_rate)
+            if item.cool_out_t is not None:
+                t3_range.append(item.cool_out_t)
         self.T1_range = t1_range
+        self.T3_range = t3_range
         self.load_rat = load_rate
 
         self.n = None  # 台数
@@ -165,13 +140,18 @@ class CCTcase(ea.Problem):
         for index in range(len(self.load_rat)):
             if index == len(self.load_rat) - 1:
                 self.T1 = float(self.T1_range[index])
+                if self.isFixT3:
+                    self.T3 = float(self.T3_range[index])
                 break
-
-            if (temp < self.load_rat[index] or temp == self.load_rat[index]) and temp > self.load_rat[index + 1]:
+            if self.load_rat[index] >= temp > self.load_rat[index + 1]:
                 if temp - self.load_rat[index + 1] < self.load_rat[index] - temp:
-                    self.T1 = float(self.T1_range[index])
+                    self.T1 = float(self.T1_range[index + 1])
+                    if self.isFixT3:
+                        self.T3 = float(self.T3_range[index + 1])
                 else:
                     self.T1 = float(self.T1_range[index])
+                    if self.isFixT3:
+                        self.T3 = float(self.T3_range[index])
                 break
 
         for i in range(int(self.max_n)):
@@ -182,47 +162,79 @@ class CCTcase(ea.Problem):
             self.n = int(self.max_n)
 
         self.n = min(self.n, self.max_n)
-
+        self.z = 0
         self.Q = self.Q / self.n
+        self.selectType = 1
+        self.E = arr_E
+        self.cooling_tower_var = False
+        if Init.cooling_tower.min.cooling_tower_var == "yes":
+            self.cooling_tower_var = True
+        self.autoCalc = False
+        if self.isFixT3 is False:
+            self.D_1to1 = arr_D_1to1
+            self.D_2to1 = arr_D_2to1
+            self.D_3to1 = arr_D_3to1
+            self.D_4to1 = arr_D_4to1
+            self.D_3to2 = arr_D_3to2
+            self.D_4to3 = arr_D_4to3
+            self.typeToD = {1: self.D_1to1, 2: self.D_2to1, 3: self.D_3to1, 4: self.D_4to1, 5: self.D_3to2,
+                            6: self.D_4to3}
 
-        # 计算T3
-        if self.selectType == 0:
-            temp = self.lengque_maxn / self.n
-            if temp >= 4:
-                self.selectType = 4
-            elif temp >= 3:
-                self.selectType = 3
-            elif temp >= 2:
+            calcType = Init.cooling_tower.min.calcType
+            if calcType == "1to1":
+                self.selectType = 1
+            elif calcType == "2to1":
                 self.selectType = 2
-            elif temp >= 3 / 2:
+            elif calcType == "3to1":
+                self.selectType = 3
+            elif calcType == "4to1":
+                self.selectType = 4
+            elif calcType == "3to2":
                 self.selectType = 5
-            elif temp >= 4 / 3:
+            elif calcType == "4to3":
                 self.selectType = 6
             else:
-                self.selectType = 1
-        else:
-            if self.selectType <= 4:
-                self.z = self.n * self.selectType
-            elif self.selectType == 5:
-                self.z = self.n * 1.5
-            else:
-                self.z = self.n * 4 / 3
-            while self.z > self.lengque_maxn and self.selectType != 1:
-                if self.selectType <= 4:
-                    self.selectType -= 1
-                    self.z = self.n * self.selectType
+                self.selectType = 0
+                self.autoCalc = True
+
+            # 计算T3
+            if self.selectType == 0:
+                temp = self.lengque_maxn / self.n
+                if temp >= 4:
+                    self.selectType = 4
+                elif temp >= 3:
+                    self.selectType = 3
+                elif temp >= 2:
+                    self.selectType = 2
+                elif temp >= 3 / 2:
+                    self.selectType = 5
+                elif temp >= 4 / 3:
+                    self.selectType = 6
                 else:
                     self.selectType = 1
-                    self.z = self.n
+            else:
+                if self.selectType <= 4:
+                    self.z = self.n * self.selectType
+                elif self.selectType == 5:
+                    self.z = self.n * 1.5
+                else:
+                    self.z = self.n * 4 / 3
+                while self.z > self.lengque_maxn and self.selectType != 1:
+                    if self.selectType <= 4:
+                        self.selectType -= 1
+                        self.z = self.n * self.selectType
+                    else:
+                        self.selectType = 1
+                        self.z = self.n
 
-        #        self.D3 = 0
-        #        if len(self.typeToD[self.selectType]) == 3:
-        #            self.D0, self.D1, self.D2 = self.typeToD[self.selectType]
-        #        else:
-        #            self.D0, self.D1, self.D2, self.D3 = self.typeToD[self.selectType]
+            #        self.D3 = 0
+            #        if len(self.typeToD[self.selectType]) == 3:
+            #            self.D0, self.D1, self.D2 = self.typeToD[self.selectType]
+            #        else:
+            #            self.D0, self.D1, self.D2, self.D3 = self.typeToD[self.selectType]
 
-        # TODO 思考D3是否会带来问题呢？
-        self.getT3()
+            # TODO 思考D3是否会带来问题呢？
+            self.getT3()
 
         name = 'MyProblem'  # 初始化name（函数名称，可以随意设置）
         M = 1  # 初始化M（目标维数）
@@ -255,7 +267,6 @@ class CCTcase(ea.Problem):
         else:
             D0, D1, D2 = self.typeToD[self.selectType]
             self.T3 = self.TS + D0 + D1 * self.TS + D2 * self.TS * self.TS
-        print("Q:", self.Q * self.n, self.selectType)
         while self.T3 < self.t3_min and self.selectType != 1:
             if self.selectType <= 4:  # 刚好等于4的情况下(4to1)，此时降为3（3to1），此时参数D就为3个
                 self.selectType -= 1
